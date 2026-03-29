@@ -40,7 +40,24 @@ export const GAME_MODE_METAS: readonly GameModeMeta[] = [
 ] as const;
 
 /** Módy již implementované v aplikaci */
-export const IMPLEMENTED_GAME_MODES = new Set<GameMode>(["flashcards"]);
+export const IMPLEMENTED_GAME_MODES = new Set<GameMode>([
+  "flashcards",
+  "fillLetters",
+  "multipleChoice",
+  "memory",
+  "listenChoose",
+  "speedQuiz",
+]);
+
+/** Pořadí pro náhodný mód */
+export const ALL_IMPLEMENTED_MODES: readonly GameMode[] = [
+  "flashcards",
+  "fillLetters",
+  "multipleChoice",
+  "memory",
+  "listenChoose",
+  "speedQuiz",
+] as const;
 
 export function isGameModeImplemented(mode: GameMode): boolean {
   return IMPLEMENTED_GAME_MODES.has(mode);
