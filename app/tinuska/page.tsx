@@ -25,13 +25,13 @@ export default function TinuskaPage() {
           {subjects.map((s) => {
             const cardClass =
               "flex items-center gap-4 rounded-2xl border border-violet-200/80 bg-white/80 p-5 shadow-md shadow-violet-500/10 backdrop-blur-sm transition hover:border-violet-300 hover:shadow-lg";
-            if (s.name === "Angličtina") {
+            if (s.href !== "/tinuska") {
               return (
                 <li key={s.name}>
                   <Link
-                    href="/tinuska/anglictina"
+                    href={s.href}
                     className={`${cardClass} block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500`}
-                    aria-label="Otevřít anglická slovíčka"
+                    aria-label={`Otevřít ${s.name}`}
                   >
                     <span className="text-3xl" aria-hidden>
                       {s.emoji}

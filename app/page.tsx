@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { tinuskaSubjects, teoSubjects } from "@/lib/subjects";
 
@@ -42,21 +43,21 @@ export default function Home() {
               <p className="mt-1 text-xs text-slate-500">Předměty</p>
               <ul className="mt-3 space-y-2">
                 {tinuskaSubjects.map((s) => (
-                  <li
-                    key={s.name}
-                    className="flex items-center gap-2 rounded-xl border border-violet-500/20 bg-violet-500/10 px-3 py-2 text-sm text-slate-200"
-                  >
-                    <span aria-hidden>{s.emoji}</span>
-                    <span>{s.name}</span>
+                  <li key={s.name}>
+                    <Link
+                      href={s.href}
+                      className="flex items-center gap-2 rounded-xl border border-violet-500/20 bg-violet-500/10 px-3 py-2 text-sm text-slate-200 transition hover:border-violet-400/50 hover:bg-violet-500/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400"
+                      aria-label={`Otevřít ${s.name}${s.href === "/tinuska/anglictina" ? " – slovíčka" : ""}`}
+                    >
+                      <span aria-hidden>{s.emoji}</span>
+                      <span className="font-medium">{s.name}</span>
+                      <span className="ml-auto text-violet-300/80" aria-hidden>
+                        →
+                      </span>
+                    </Link>
                   </li>
                 ))}
               </ul>
-              <Link
-                href="/tinuska"
-                className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-violet-300 transition hover:text-white"
-              >
-                Otevřít stránku Tinušky →
-              </Link>
             </section>
 
             <section>
@@ -66,21 +67,21 @@ export default function Home() {
               <p className="mt-1 text-xs text-slate-500">Předměty</p>
               <ul className="mt-3 space-y-2">
                 {teoSubjects.map((s) => (
-                  <li
-                    key={s.name}
-                    className="flex items-center gap-2 rounded-xl border border-sky-500/20 bg-sky-500/10 px-3 py-2 text-sm text-slate-200"
-                  >
-                    <span aria-hidden>{s.emoji}</span>
-                    <span>{s.name}</span>
+                  <li key={s.name}>
+                    <Link
+                      href={s.href}
+                      className="flex items-center gap-2 rounded-xl border border-sky-500/20 bg-sky-500/10 px-3 py-2 text-sm text-slate-200 transition hover:border-sky-400/50 hover:bg-sky-500/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-400"
+                      aria-label={`Otevřít ${s.name} (Teo)`}
+                    >
+                      <span aria-hidden>{s.emoji}</span>
+                      <span className="font-medium">{s.name}</span>
+                      <span className="ml-auto text-sky-300/80" aria-hidden>
+                        →
+                      </span>
+                    </Link>
                   </li>
                 ))}
               </ul>
-              <Link
-                href="/teo"
-                className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-sky-300 transition hover:text-white"
-              >
-                Otevřít stránku Tea →
-              </Link>
             </section>
           </nav>
         </div>
@@ -96,56 +97,28 @@ export default function Home() {
               </span>
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-base text-slate-400 sm:text-lg md:mx-0">
-              Místo, kde se Tinuška a Teo učí s radostí. V menu vlevo najdeš
-              přehled předmětů a odkazy na jejich stránky.
+              Jsme doma ve Znojmě – městě s historií, výhledy a klidem na učení.
+              Předměty a aktivity spustíš z menu vlevo.
             </p>
           </header>
 
-          <div className="mt-12 grid flex-1 grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2 md:items-stretch">
-            <Link
-              href="/tinuska"
-              className="group relative flex flex-col overflow-hidden rounded-3xl bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-800 p-6 shadow-2xl shadow-violet-900/40 ring-1 ring-white/10 transition duration-300 ease-out hover:scale-[1.02] hover:shadow-violet-500/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-violet-300 sm:p-8"
-            >
-              <span
-                className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-2xl transition duration-500 group-hover:bg-white/15"
-                aria-hidden
+          <figure className="mt-10 w-full">
+            <div className="overflow-hidden rounded-2xl border border-white/10 bg-slate-900/40 shadow-2xl ring-1 ring-white/5">
+              <Image
+                src="/znojmo.jpg"
+                alt="Panoramatický pohled na historické město Znojmo"
+                width={1280}
+                height={803}
+                className="h-auto w-full object-cover"
+                sizes="(max-width: 768px) 100vw, min(896px, 90vw)"
+                priority
               />
-              <span className="text-4xl drop-shadow-md" aria-hidden>
-                📚
-              </span>
-              <h2 className="mt-3 text-xl font-bold text-white sm:text-2xl">
-                Tinuška
-              </h2>
-              <p className="mt-2 flex-1 text-sm leading-relaxed text-violet-100/95 sm:text-base">
-                Angličtina, Matika, Čeština a další
-              </p>
-              <span className="mt-6 inline-flex w-fit items-center gap-2 rounded-full bg-white/15 px-5 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition group-hover:bg-white/25">
-                Vstoupit →
-              </span>
-            </Link>
-
-            <Link
-              href="/teo"
-              className="group relative flex flex-col overflow-hidden rounded-3xl bg-gradient-to-br from-sky-500 via-blue-600 to-indigo-800 p-6 shadow-2xl shadow-blue-900/40 ring-1 ring-white/10 transition duration-300 ease-out hover:scale-[1.02] hover:shadow-sky-500/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-sky-300 sm:p-8"
-            >
-              <span
-                className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-2xl transition duration-500 group-hover:bg-white/15"
-                aria-hidden
-              />
-              <span className="text-4xl drop-shadow-md" aria-hidden>
-                🚀
-              </span>
-              <h2 className="mt-3 text-xl font-bold text-white sm:text-2xl">
-                Teo
-              </h2>
-              <p className="mt-2 flex-1 text-sm leading-relaxed text-sky-100/95 sm:text-base">
-                Hravé učení šité na míru
-              </p>
-              <span className="mt-6 inline-flex w-fit items-center gap-2 rounded-full bg-white/15 px-5 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition group-hover:bg-white/25">
-                Vstoupit →
-              </span>
-            </Link>
-          </div>
+            </div>
+            <figcaption className="mt-3 text-center text-xs text-slate-500 md:text-left">
+              Panorama Znojma (zdroj obrázku: Wikimedia Commons, soubor
+              „Znojmo – panorama od jihu obr1“)
+            </figcaption>
+          </figure>
         </main>
 
         <footer className="relative z-0 border-t border-white/10 bg-[#0f0f1a]/80 px-4 py-5 text-center text-sm text-slate-500 backdrop-blur-sm">
