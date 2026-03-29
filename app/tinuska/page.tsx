@@ -22,17 +22,41 @@ export default function TinuskaPage() {
         </header>
 
         <ul className="grid gap-4 sm:grid-cols-2">
-          {subjects.map((s) => (
-            <li
-              key={s.name}
-              className="flex items-center gap-4 rounded-2xl border border-violet-200/80 bg-white/80 p-5 shadow-md shadow-violet-500/10 backdrop-blur-sm"
-            >
-              <span className="text-3xl" aria-hidden>
-                {s.emoji}
-              </span>
-              <span className="text-lg font-semibold text-slate-800">{s.name}</span>
-            </li>
-          ))}
+          {subjects.map((s) => {
+            const cardClass =
+              "flex items-center gap-4 rounded-2xl border border-violet-200/80 bg-white/80 p-5 shadow-md shadow-violet-500/10 backdrop-blur-sm transition hover:border-violet-300 hover:shadow-lg";
+            if (s.name === "Angličtina") {
+              return (
+                <li key={s.name}>
+                  <Link
+                    href="/tinuska/anglictina"
+                    className={`${cardClass} block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500`}
+                    aria-label="Otevřít anglická slovíčka"
+                  >
+                    <span className="text-3xl" aria-hidden>
+                      {s.emoji}
+                    </span>
+                    <span className="text-lg font-semibold text-slate-800">
+                      {s.name}
+                    </span>
+                    <span className="ml-auto text-sm font-medium text-violet-600">
+                      Otevřít →
+                    </span>
+                  </Link>
+                </li>
+              );
+            }
+            return (
+              <li key={s.name} className={cardClass}>
+                <span className="text-3xl" aria-hidden>
+                  {s.emoji}
+                </span>
+                <span className="text-lg font-semibold text-slate-800">
+                  {s.name}
+                </span>
+              </li>
+            );
+          })}
         </ul>
       </div>
     </div>
