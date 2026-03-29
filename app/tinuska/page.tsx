@@ -1,11 +1,5 @@
 import Link from "next/link";
-
-const subjects = [
-  { name: "Matika", emoji: "🔢" },
-  { name: "Čeština", emoji: "📖" },
-  { name: "Angličtina", emoji: "🇬🇧" },
-  { name: "Prvouka", emoji: "🌍" },
-] as const;
+import { tinuskaSubjects as subjects } from "@/lib/subjects";
 
 export default function TinuskaPage() {
   return (

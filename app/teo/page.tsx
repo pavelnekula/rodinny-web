@@ -1,11 +1,5 @@
 import Link from "next/link";
-
-const subjects = [
-  { name: "Čeština", emoji: "📖" },
-  { name: "Matematika", emoji: "🔢" },
-  { name: "Zeměpis", emoji: "🗺️" },
-  { name: "Fyzika", emoji: "⚡" },
-] as const;
+import { teoSubjects as subjects } from "@/lib/subjects";
 
 export default function TeoPage() {
   return (
