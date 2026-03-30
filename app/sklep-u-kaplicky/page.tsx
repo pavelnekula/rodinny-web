@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { WineOrderForm } from "@/components/sklep-u-kaplicky/WineOrderForm";
 
 /**
  * Údaje převzaté z Google Map (profil místa po přesměrování z krátkého odkazu).
@@ -221,6 +222,17 @@ export default function SklepUKaplickyPage() {
               </div>
             </li>
           </ul>
+        </section>
+
+        <section className="mt-20 border-t border-[#e5e7eb] pt-20">
+          <h2 className="text-2xl font-semibold tracking-tight text-[#1a1a1a]">
+            Objednat víno
+          </h2>
+          <p className="mt-4 text-sm font-light leading-relaxed text-[#6b7280]">
+            Vyberte vína a typ lahví, způsob dopravy a kontakt. Cena se přepočítá
+            automaticky.
+          </p>
+          <WineOrderForm />
         </section>
       </div>
     </div>

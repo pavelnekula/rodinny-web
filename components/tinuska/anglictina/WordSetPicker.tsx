@@ -63,8 +63,8 @@ export function WordSetPicker({
         </button>
       </div>
 
-      <div className="rounded-2xl border-4 border-dashed border-amber-300/80 bg-amber-50/50 p-4 sm:p-6">
-        <p className="mb-4 text-center text-lg font-bold text-amber-900">
+      <div className="rounded-xl border-2 border-dashed border-amber-300/80 bg-amber-50/50 p-3 sm:p-4">
+        <p className="mb-2 text-center text-base font-bold text-amber-900">
           🎲 MIX — všechna slovíčka
         </p>
         <button
@@ -73,23 +73,23 @@ export function WordSetPicker({
           onClick={() =>
             onStart(mixWords, "mix", "MIX — všechna slovíčka")
           }
-          className="flex w-full flex-col items-center justify-center gap-2 rounded-2xl border-4 border-amber-400 bg-gradient-to-r from-amber-200 to-orange-200 px-6 py-8 text-xl font-extrabold text-amber-950 shadow-lg transition enabled:hover:scale-[1.01] enabled:hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex w-full flex-col items-center justify-center gap-1 rounded-xl border-2 border-amber-400 bg-gradient-to-r from-amber-200 to-orange-200 px-4 py-4 text-base font-extrabold text-amber-950 shadow-md transition enabled:hover:scale-[1.01] enabled:hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
           aria-label={`MIX, ${mixWords.length} slovíček`}
         >
-          <span className="text-4xl" aria-hidden>
+          <span className="text-2xl" aria-hidden>
             🎲
           </span>
-          <span>
+          <span className="text-center text-sm font-bold leading-snug sm:text-base">
             {mixWords.length} slovíček náhodně z celé aplikace
           </span>
         </button>
       </div>
 
       <div>
-        <p className="mb-4 text-center text-lg font-bold text-slate-800">
+        <p className="mb-3 text-center text-base font-bold text-slate-800">
           Nebo vyber jednu kategorii
         </p>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3">
           {VOCABULARY_CATEGORIES.map((cat) => {
             const n = counts.get(cat.id) ?? 0;
             const list = mergedWords.filter((w) => w.categoryId === cat.id);
@@ -102,14 +102,16 @@ export function WordSetPicker({
                 onClick={() =>
                   onStart(list, cat.id, cat.titleCs)
                 }
-                className={`flex flex-col items-start rounded-2xl border-4 bg-gradient-to-br p-5 text-left shadow-md transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 enabled:hover:scale-[1.01] enabled:hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 ${cat.tileClass}`}
+                className={`flex flex-col items-start rounded-xl border-2 bg-gradient-to-br p-3 text-left shadow-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 enabled:hover:scale-[1.01] enabled:hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 ${cat.tileClass}`}
                 aria-label={`${cat.titleCs}, ${n} slovíček`}
               >
-                <span className="text-4xl" role="img" aria-hidden>
+                <span className="text-2xl" role="img" aria-hidden>
                   {cat.tileEmoji}
                 </span>
-                <span className="mt-2 text-xl font-extrabold">{cat.titleCs}</span>
-                <span className="mt-1 text-sm font-medium opacity-90">
+                <span className="mt-1.5 text-base font-extrabold leading-snug">
+                  {cat.titleCs}
+                </span>
+                <span className="mt-0.5 text-xs font-medium opacity-90">
                   {n} slovíček
                 </span>
               </button>
