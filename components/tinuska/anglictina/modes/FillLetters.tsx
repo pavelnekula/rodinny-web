@@ -1,14 +1,15 @@
 "use client";
 
-import { motion, useAnimate } from "framer-motion";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { Word } from "../types";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { Word, WordSetKey } from "../types";
 import { shuffle } from "../utils/shuffle";
-import { SpeechButton } from "../shared/SpeechButton";
+import { useGameSounds } from "../hooks/useGameSounds";
+import { useGameHighScores } from "../hooks/useGameHighScores";
 
 type FillLettersProps = {
   words: Word[];
   categoryLabel: string;
+  wordSetKey: WordSetKey;
   onExit: () => void;
   onCorrectAnswer: (wordId: string) => void;
 };
@@ -16,181 +17,371 @@ type FillLettersProps = {
 const ALPHABET = "abcdefghijklmnopqrstuvwxyz".split("");
 
 function puzzleKey(word: Word): string {
-  const first = word.en.trim().split(/\s+/)[0] ?? word.en;
-  return first.toLowerCase().replace(/[^a-z]/g, "");
+  const base = word.en.toLowerCase().replace(/[^a-z]/g, "");
+  const last = word.id.split("-").pop() ?? "";
+  if (/^(ty|vy|tu|vu)$/i.test(last)) {
+    return (base + last.toLowerCase()).slice(0, 28);
+  }
+  return base.length > 0 ? base.slice(0, 28) : word.id.replace(/[^a-z]/g, "").slice(0, 16);
 }
 
-function buildLetterPool(target: string): string[] {
-  const chars = target.split("");
-  const wrong = shuffle(
-    ALPHABET.filter((c) => !target.includes(c)),
-  ).slice(0, 4);
-  return shuffle([...chars, ...wrong]);
+function buildMask(target: string): boolean[] {
+  const n = target.length;
+  if (n === 0) return [];
+  const hideCount = Math.max(1, Math.min(n - 1, Math.ceil(n * 0.45)));
+  const idx = shuffle([...Array(n).keys()]).slice(0, hideCount);
+  const mask = Array(n).fill(false);
+  for (const i of idx) mask[i] = true;
+  return mask;
 }
+
+function isComplete(
+  target: string,
+  mask: boolean[],
+  filled: string[],
+): boolean {
+  return target.split("").every((ch, i) => {
+    if (!mask[i]) return true;
+    return filled[i] === ch;
+  });
+}
+
+type Phase = "play" | "done";
 
 export function FillLetters({
   words,
   categoryLabel,
+  wordSetKey,
   onExit,
   onCorrectAnswer,
 }: FillLettersProps) {
+  const { playCorrect, playWrong, playFanfare } = useGameSounds();
+  const { getHighScore, saveIfBetter } = useGameHighScores();
+
   const playable = useMemo(
     () => words.filter((w) => puzzleKey(w).length > 0),
     [words],
   );
+
   const [order, setOrder] = useState<number[]>(() =>
-    playable.map((_, i) => i),
+    shuffle(playable.map((_, i) => i)),
   );
   const [roundIdx, setRoundIdx] = useState(0);
-  const [pool, setPool] = useState<string[]>([]);
-  const [progress, setProgress] = useState(0);
-  const [correctTotal, setCorrectTotal] = useState(0);
-  const [shakeBoard, setShakeBoard] = useState(false);
+  const [mask, setMask] = useState<boolean[]>([]);
+  const [filled, setFilled] = useState<string[]>([]);
+  const [lives, setLives] = useState(3);
+  const [hintsLeft, setHintsLeft] = useState(2);
+  const [hintsUsedCount, setHintsUsedCount] = useState(0);
+  const [totalScore, setTotalScore] = useState(0);
+  const [phase, setPhase] = useState<Phase>("play");
+  const [shake, setShake] = useState(false);
   const [flashOk, setFlashOk] = useState(false);
-  const [scope, animate] = useAnimate();
-
-  useEffect(() => {
-    setOrder(shuffle(playable.map((_, i) => i)));
-    setRoundIdx(0);
-    setCorrectTotal(0);
-  }, [playable]);
+  const roundStartRef = useRef<number>(0);
+  const [keyboardUsed, setKeyboardUsed] = useState<Set<string>>(
+    () => new Set(),
+  );
 
   const word = playable[order[roundIdx] ?? 0];
   const target = word ? puzzleKey(word) : "";
 
   useEffect(() => {
     if (!word || !target) return;
-    setProgress(0);
-    setPool(buildLetterPool(target));
-  }, [word, target]);
+    const m = buildMask(target);
+    setMask(m);
+    setFilled(
+      target.split("").map((ch, i) => (m[i] ? "" : ch)),
+    );
+    roundStartRef.current = performance.now();
+    setHintsUsedCount(0);
+  }, [word?.id, target]);
 
-  const remainingSlots = target.length - progress;
+  const nextHiddenIndex = useMemo(() => {
+    if (!target) return -1;
+    for (let i = 0; i < target.length; i++) {
+      if (mask[i] && filled[i] === "") return i;
+    }
+    return -1;
+  }, [target, mask, filled]);
 
-  const advanceRound = useCallback(() => {
-    setCorrectTotal((c) => c + 1);
-    if (word) onCorrectAnswer(word.id);
-    setFlashOk(true);
-    window.setTimeout(() => setFlashOk(false), 450);
-    window.setTimeout(() => {
+  const advanceRound = useCallback(
+    (pts: number, wid: string) => {
+      setTotalScore((s) => s + pts);
+      setFlashOk(true);
+      window.setTimeout(() => setFlashOk(false), 400);
+      onCorrectAnswer(wid);
       setRoundIdx((i) => {
         if (i + 1 >= order.length) {
-          setOrder(shuffle(playable.map((_, j) => j)));
-          return 0;
+          window.setTimeout(() => {
+            setPhase("done");
+            playFanfare();
+          }, 400);
+          return i;
         }
         return i + 1;
       });
-    }, 500);
-  }, [word, onCorrectAnswer, order.length, playable]);
-
-  const onPickLetter = useCallback(
-    async (letter: string, indexInPool: number) => {
-      if (!target || remainingSlots <= 0) return;
-      const expected = target[progress]!;
-      if (letter === expected) {
-        const nextProgress = progress + 1;
-        setProgress(nextProgress);
-        setPool((p) => p.filter((_, idx) => idx !== indexInPool));
-        if (nextProgress >= target.length) {
-          advanceRound();
-        }
-      } else {
-        setShakeBoard(true);
-        const el = scope.current;
-        if (el)
-          await animate(
-            el,
-            { x: [0, -10, 10, -10, 10, 0] },
-            { duration: 0.45 },
-          );
-        setShakeBoard(false);
-      }
     },
-    [target, progress, remainingSlots, advanceRound, animate, scope],
+    [onCorrectAnswer, order.length, playFanfare],
   );
 
-  if (playable.length === 0 || !word) {
+  const tryLetter = useCallback(
+    (letter: string) => {
+      if (!word || !target || phase !== "play") return;
+      const low = letter.toLowerCase();
+      if (!/^[a-z]$/.test(low)) return;
+      const idx = nextHiddenIndex;
+      if (idx < 0) return;
+
+      setKeyboardUsed((prev) => new Set(prev).add(low));
+
+      if (low === target[idx]) {
+        playCorrect();
+        setFilled((prev) => {
+          const next = [...prev];
+          next[idx] = low;
+          if (isComplete(target, mask, next)) {
+            const elapsed =
+              (performance.now() - roundStartRef.current) / 1000;
+            let pts = 10;
+            if (elapsed <= 10) pts += 5;
+            pts -= hintsUsedCount * 3;
+            if (pts < 0) pts = 0;
+            window.setTimeout(() => advanceRound(pts, word.id), 0);
+          }
+          return next;
+        });
+      } else {
+        playWrong();
+        setShake(true);
+        window.setTimeout(() => setShake(false), 400);
+        setLives((l) => {
+          const nl = Math.max(0, l - 1);
+          if (nl === 0) window.setTimeout(() => setPhase("done"), 500);
+          return nl;
+        });
+      }
+    },
+    [
+      word,
+      target,
+      mask,
+      phase,
+      nextHiddenIndex,
+      playCorrect,
+      playWrong,
+      advanceRound,
+      hintsUsedCount,
+    ],
+  );
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (phase !== "play") return;
+      tryLetter(e.key);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [tryLetter, phase]);
+
+  const useHint = useCallback(() => {
+    if (hintsLeft <= 0 || !target || !word || phase !== "play") return;
+    const hiddenIdx = target
+      .split("")
+      .map((_, i) => (mask[i] && filled[i] === "" ? i : -1))
+      .filter((i) => i >= 0);
+    if (hiddenIdx.length === 0) return;
+    const pick =
+      hiddenIdx[Math.floor(Math.random() * hiddenIdx.length)]!;
+    const ch = target[pick]!;
+    const nextHintsUsed = hintsUsedCount + 1;
+    setHintsLeft((h) => h - 1);
+    setHintsUsedCount(nextHintsUsed);
+    setKeyboardUsed((prev) => new Set(prev).add(ch));
+    setFilled((prev) => {
+      const next = [...prev];
+      next[pick] = ch;
+      if (isComplete(target, mask, next)) {
+        const elapsed = (performance.now() - roundStartRef.current) / 1000;
+        let pts = 10;
+        if (elapsed <= 10) pts += 5;
+        pts -= nextHintsUsed * 3;
+        if (pts < 0) pts = 0;
+        window.setTimeout(() => advanceRound(pts, word.id), 0);
+      }
+      return next;
+    });
+  }, [
+    hintsLeft,
+    target,
+    mask,
+    filled,
+    phase,
+    word,
+    hintsUsedCount,
+    advanceRound,
+  ]);
+
+  const savedDoneRef = useRef(false);
+  const totalScoreRef = useRef(totalScore);
+  totalScoreRef.current = totalScore;
+  useEffect(() => {
+    if (phase !== "done") {
+      savedDoneRef.current = false;
+      return;
+    }
+    if (savedDoneRef.current) return;
+    savedDoneRef.current = true;
+    const t = window.setTimeout(() => {
+      saveIfBetter("fillLetters", wordSetKey, totalScoreRef.current);
+    }, 50);
+    return () => window.clearTimeout(t);
+  }, [phase, saveIfBetter, wordSetKey]);
+
+  const smiley = useMemo(() => {
+    if (totalScore >= 50) return "🤩";
+    if (totalScore >= 25) return "😄";
+    return "😊";
+  }, [totalScore]);
+
+  const best = getHighScore("fillLetters", wordSetKey);
+
+  if (playable.length === 0) {
     return (
       <p className="text-center text-lg text-slate-600">
-        V této kategorii není vhodné slovo pro doplňování písmen.
+        V této sadě není vhodné slovo pro doplňování písmen.
       </p>
     );
   }
 
-  return (
-    <div className="mx-auto flex w-full max-w-xl flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-lg font-semibold text-slate-700">
-          {categoryLabel} · Doplň písmena · {correctTotal} správně
+  if (phase === "done") {
+    return (
+      <div className="mx-auto flex max-w-lg flex-col items-center gap-6 px-4 py-8 text-center">
+        <p className="text-4xl">{smiley}</p>
+        <p className="text-2xl font-extrabold text-slate-900">
+          Konec hry! Body: {totalScore}
         </p>
+        <p className="text-slate-600">
+          Životy: {"❤️".repeat(Math.max(0, lives))}
+          {lives === 0 ? " (žádné)" : ""}
+        </p>
+        {best > 0 ? (
+          <p className="text-teal-800">Rekord v této sadě: {best}</p>
+        ) : null}
+        <div className="flex flex-wrap justify-center gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              setOrder(shuffle(playable.map((_, i) => i)));
+              setRoundIdx(0);
+              setLives(3);
+              setHintsLeft(2);
+              setTotalScore(0);
+              setPhase("play");
+            }}
+            className="rounded-2xl border-4 border-teal-400 bg-teal-200 px-8 py-3 text-xl font-bold text-teal-950"
+          >
+            Hrát znovu
+          </button>
+          <button
+            type="button"
+            onClick={onExit}
+            className="rounded-2xl border-2 border-slate-300 bg-white px-8 py-3 text-xl font-bold text-slate-700"
+          >
+            Zpět
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!word) return null;
+
+  return (
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-lg font-bold text-slate-800">
+            {categoryLabel} · Doplň písmena
+          </p>
+          <p className="text-sm text-slate-600">
+            Body: {totalScore} · Životy: {"❤️".repeat(lives)} · Nápovědy:{" "}
+            {hintsLeft} 💡
+          </p>
+        </div>
         <button
           type="button"
           onClick={onExit}
-          className="rounded-xl border-2 border-slate-300 bg-white px-4 py-2 text-base font-semibold text-slate-700 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500"
-          aria-label="Zpět na výběr"
+          className="rounded-xl border-2 border-slate-300 bg-white px-4 py-2 font-semibold text-slate-700"
         >
           ← Zpět
         </button>
       </div>
 
-      <motion.div
-        ref={scope}
-        className={`rounded-3xl border-4 p-6 text-center shadow-lg transition-colors ${
-          flashOk
-            ? "border-emerald-400 bg-emerald-50"
-            : "border-teal-200 bg-white/95"
-        } ${shakeBoard ? "ring-2 ring-rose-400" : ""}`}
-      >
-        <span className="text-8xl" role="img" aria-label={word.en}>
-          {word.emoji}
-        </span>
-        <p className="mt-2 text-sm font-medium text-slate-500">
-          Slož anglické slovo (první část)
+      <div className="rounded-2xl border-4 border-teal-200 bg-white/95 p-4 shadow-lg">
+        <p className="text-center text-lg font-bold text-slate-800">
+          {word.cs}
         </p>
+        <p className="mt-2 text-center text-base text-slate-600">
+          {word.sentence}
+        </p>
+      </div>
+
+      <div
+        className={`rounded-3xl border-4 p-4 transition-colors ${
+          flashOk ? "border-emerald-400 bg-emerald-50" : "border-slate-200 bg-white"
+        } ${shake ? "ring-4 ring-rose-400" : ""}`}
+      >
         <div
-          className="mt-4 flex min-h-[3rem] flex-wrap items-center justify-center gap-2 font-mono text-3xl font-bold tracking-widest text-slate-800"
+          className="flex min-h-[3.5rem] flex-wrap items-center justify-center gap-2 font-mono text-2xl font-bold sm:text-3xl"
           aria-live="polite"
         >
           {target.split("").map((ch, i) => (
             <span
               key={`${ch}-${i}`}
-              className={`flex h-12 w-10 items-center justify-center rounded-lg border-2 ${
-                i < progress
-                  ? "border-emerald-400 bg-emerald-100 text-emerald-900"
-                  : "border-slate-300 bg-slate-50 text-slate-400"
+              className={`flex h-14 min-w-[2.5rem] items-center justify-center rounded-lg border-2 uppercase ${
+                mask[i]
+                  ? filled[i]
+                    ? "border-emerald-500 bg-emerald-100 text-emerald-900"
+                    : "border-dashed border-slate-400 bg-slate-50 text-slate-400"
+                  : "border-slate-300 bg-slate-100 text-slate-800"
               }`}
             >
-              {i < progress ? ch.toUpperCase() : "—"}
+              {mask[i] ? (filled[i] ?? "") : ch}
             </span>
           ))}
         </div>
-        <div className="mt-4 flex justify-center">
-          <SpeechButton
-            text={word.en}
-            label={`Vyslovit ${word.en}`}
-            className="h-12 w-12"
-          />
-        </div>
-      </motion.div>
-
-      <div className="flex flex-wrap justify-center gap-2">
-        {pool.map((letter, idx) => (
-          <motion.button
-            key={`${letter}-${idx}`}
-            type="button"
-            whileTap={{ scale: 0.92 }}
-            onClick={() => onPickLetter(letter, idx)}
-            aria-label={`Písmeno ${letter.toUpperCase()}`}
-            className="flex h-14 min-w-[3rem] items-center justify-center rounded-2xl border-2 border-amber-300 bg-amber-100 text-2xl font-bold uppercase text-amber-950 shadow transition hover:bg-amber-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600"
-          >
-            {letter}
-          </motion.button>
-        ))}
       </div>
 
-      <p className="text-center text-base text-slate-600" role="status">
-        Skóre: <span className="font-bold text-teal-800">{correctTotal}</span>{" "}
-        správných slov
-      </p>
+      <div className="flex flex-wrap justify-center gap-2">
+        <button
+          type="button"
+          onClick={useHint}
+          disabled={hintsLeft <= 0 || nextHiddenIndex < 0}
+          className="rounded-xl border-2 border-amber-400 bg-amber-100 px-4 py-2 font-bold text-amber-950 disabled:opacity-40"
+        >
+          💡 Nápověda ({hintsLeft})
+        </button>
+      </div>
+
+      <div className="flex flex-wrap justify-center gap-2">
+        {ALPHABET.map((letter) => {
+          const used = keyboardUsed.has(letter);
+          return (
+            <button
+              key={letter}
+              type="button"
+              onClick={() => tryLetter(letter)}
+              disabled={lives <= 0}
+              className={`flex h-12 min-w-[2.75rem] items-center justify-center rounded-xl border-2 text-xl font-bold uppercase shadow transition sm:h-14 sm:min-w-[3rem] sm:text-2xl ${
+                used
+                  ? "border-slate-200 bg-slate-100 text-slate-400"
+                  : "border-amber-300 bg-amber-100 text-amber-950 hover:bg-amber-200"
+              }`}
+            >
+              {letter}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

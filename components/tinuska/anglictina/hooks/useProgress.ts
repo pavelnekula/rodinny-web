@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { TOTAL_VOCABULARY_COUNT, VOCABULARY_WORDS } from "../VocabularyData";
+import type { CategoryId, Word } from "../types";
 
 const STORAGE_KEY = "tinuska-anglictina-progress-v1";
 
@@ -35,7 +35,7 @@ function writeStore(words: Record<string, number>) {
   }
 }
 
-export function useProgress() {
+export function useProgress(mergedWords: Word[]) {
   const [words, setWords] = useState<Record<string, number>>({});
 
   useEffect(() => {
@@ -68,28 +68,28 @@ export function useProgress() {
 
   const masteredCount = useMemo(() => {
     let n = 0;
-    for (const w of VOCABULARY_WORDS) {
+    for (const w of mergedWords) {
       if ((words[w.id] ?? 0) >= STAR_THRESHOLD) n += 1;
     }
     return n;
-  }, [words]);
+  }, [words, mergedWords]);
 
   const categoryMasteredCount = useCallback(
-    (categoryId: (typeof VOCABULARY_WORDS)[number]["categoryId"]) => {
+    (categoryId: CategoryId) => {
       let n = 0;
-      for (const w of VOCABULARY_WORDS) {
+      for (const w of mergedWords) {
         if (w.categoryId !== categoryId) continue;
         if ((words[w.id] ?? 0) >= STAR_THRESHOLD) n += 1;
       }
       return n;
     },
-    [words],
+    [words, mergedWords],
   );
 
   const categoryTotal = useCallback(
-    (categoryId: (typeof VOCABULARY_WORDS)[number]["categoryId"]) =>
-      VOCABULARY_WORDS.filter((w) => w.categoryId === categoryId).length,
-    [],
+    (categoryId: CategoryId) =>
+      mergedWords.filter((w) => w.categoryId === categoryId).length,
+    [mergedWords],
   );
 
   return {
@@ -99,7 +99,7 @@ export function useProgress() {
     masteredCount,
     categoryMasteredCount,
     categoryTotal,
-    totalWords: TOTAL_VOCABULARY_COUNT,
+    totalWords: mergedWords.length,
     starThreshold: STAR_THRESHOLD,
   };
 }

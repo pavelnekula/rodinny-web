@@ -3,27 +3,20 @@
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { CategorySelector } from "./CategorySelector";
-import {
-  ALL_IMPLEMENTED_MODES,
-  isGameModeImplemented,
-} from "./gameModes";
+import { ALL_IMPLEMENTED_MODES, isGameModeImplemented } from "./gameModes";
+import { useMergedVocabulary } from "./hooks/useMergedVocabulary";
 import { useProgress } from "./hooks/useProgress";
 import { FillLetters } from "./modes/FillLetters";
 import { Flashcards } from "./modes/Flashcards";
-import { ListenChoose } from "./modes/ListenChoose";
 import { MemoryGame } from "./modes/MemoryGame";
-import { MultipleChoice } from "./modes/MultipleChoice";
-import { SpeedQuiz } from "./modes/SpeedQuiz";
 import { ModeSelector } from "./ModeSelector";
-import type { CategoryId, GameMode } from "./types";
-import {
-  getCategoryMeta,
-  getWordsByCategory,
-  VOCABULARY_CATEGORIES,
-} from "./VocabularyData";
+import { WordSetPicker } from "./WordSetPicker";
+import type { CategoryId, GameMode, WordSetKey } from "./types";
+import type { Word } from "./types";
+import { getCategoryMeta } from "./VocabularyData";
 import { ProgressBar } from "./shared/ProgressBar";
 
-type Phase = "hub" | "play";
+type HubPhase = "hub" | "wordSet" | "play";
 
 function PlayShell({ children }: { children: React.ReactNode }) {
   return (
@@ -34,103 +27,116 @@ function PlayShell({ children }: { children: React.ReactNode }) {
 }
 
 export function AnglictinaHub() {
-  const [phase, setPhase] = useState<Phase>("hub");
+  const [hubPhase, setHubPhase] = useState<HubPhase>("hub");
   const [categoryId, setCategoryId] = useState<CategoryId | null>(null);
   const [mode, setMode] = useState<GameMode | null>(null);
+  const [playWords, setPlayWords] = useState<Word[]>([]);
+  const [playSetKey, setPlaySetKey] = useState<WordSetKey>("mix");
+  const [playLabel, setPlayLabel] = useState("");
+
+  const { mergedWords } = useMergedVocabulary();
 
   const {
     masteredCount,
     totalWords,
-    hasStar,
     recordCorrect,
     categoryMasteredCount,
     categoryTotal,
-  } = useProgress();
-
-  const words = useMemo(
-    () => (categoryId ? getWordsByCategory(categoryId) : []),
-    [categoryId],
-  );
+  } = useProgress(mergedWords);
 
   const categoryMeta = categoryId ? getCategoryMeta(categoryId) : undefined;
-  const categoryLabel = categoryMeta?.titleCs ?? "Kategorie";
 
-  const startPlay = useCallback(() => {
-    if (!categoryId || !mode || !isGameModeImplemented(mode)) return;
-    setPhase("play");
-  }, [categoryId, mode]);
+  const exitPlay = useCallback(() => {
+    setHubPhase("hub");
+    setPlayWords([]);
+  }, []);
+
+  const goWordSet = useCallback(() => {
+    if (!mode || !isGameModeImplemented(mode)) return;
+    setHubPhase("wordSet");
+  }, [mode]);
+
+  const onWordSetStart = useCallback(
+    (words: Word[], setKey: WordSetKey, labelCs: string) => {
+      setPlayWords(words);
+      setPlaySetKey(setKey);
+      setPlayLabel(labelCs);
+      setHubPhase("play");
+    },
+    [],
+  );
 
   const startRandom = useCallback(() => {
-    const cats = [...VOCABULARY_CATEGORIES];
-    const catPick = cats[Math.floor(Math.random() * cats.length)]!;
     const modePick =
       ALL_IMPLEMENTED_MODES[
         Math.floor(Math.random() * ALL_IMPLEMENTED_MODES.length)
       ]!;
-    setCategoryId(catPick.id);
     setMode(modePick);
-    setPhase("play");
+    setHubPhase("wordSet");
   }, []);
 
-  const exitPlay = useCallback(() => {
-    setPhase("hub");
-  }, []);
+  const playCategoryLabel = playLabel || "Sada slovíček";
 
-  if (phase === "play" && categoryId && mode) {
-    const common = {
-      words,
-      categoryLabel,
+  const commonGameProps = useMemo(
+    () => ({
+      categoryLabel: playCategoryLabel,
       onExit: exitPlay,
-      onCorrectAnswer: recordCorrect,
-    };
+      wordSetKey: playSetKey,
+    }),
+    [playCategoryLabel, exitPlay, playSetKey],
+  );
 
+  if (hubPhase === "play" && mode && playWords.length > 0) {
     switch (mode) {
       case "flashcards":
         return (
           <PlayShell>
             <Flashcards
-              words={words}
-              categoryLabel={categoryLabel}
-              hasStar={hasStar}
+              words={playWords}
+              categoryLabel={playCategoryLabel}
               onExit={exitPlay}
+              onKnew={recordCorrect}
             />
           </PlayShell>
         );
       case "fillLetters":
         return (
           <PlayShell>
-            <FillLetters {...common} />
-          </PlayShell>
-        );
-      case "multipleChoice":
-        return (
-          <PlayShell>
-            <MultipleChoice {...common} />
+            <FillLetters
+              words={playWords}
+              {...commonGameProps}
+              onCorrectAnswer={recordCorrect}
+            />
           </PlayShell>
         );
       case "memory":
         return (
           <PlayShell>
-            <MemoryGame {...common} />
-          </PlayShell>
-        );
-      case "listenChoose":
-        return (
-          <PlayShell>
-            <ListenChoose {...common} />
-          </PlayShell>
-        );
-      case "speedQuiz":
-        return (
-          <PlayShell>
-            <SpeedQuiz {...common} />
+            <MemoryGame
+              words={playWords}
+              {...commonGameProps}
+              onCorrectAnswer={recordCorrect}
+            />
           </PlayShell>
         );
       default: {
-        const _m: never = mode;
-        return _m;
+        const _e: never = mode;
+        return _e;
       }
     }
+  }
+
+  if (hubPhase === "wordSet" && mode) {
+    return (
+      <PlayShell>
+        <WordSetPicker
+          mode={mode}
+          mergedWords={mergedWords}
+          onBack={() => setHubPhase("hub")}
+          onStart={onWordSetStart}
+        />
+      </PlayShell>
+    );
   }
 
   return (
@@ -149,7 +155,17 @@ export function AnglictinaHub() {
             🇬🇧 Angličtina · slovíčka
           </h1>
           <p className="mt-3 max-w-2xl text-lg text-slate-600 sm:text-xl">
-            Pastelové kartičky a hry pro klidné učení. Vyber kategorii a mód.
+            Vyber herní mód, pak sadu slovíček (nebo MIX). Kartičky, pexeso a
+            doplňování písmen.
+          </p>
+          <p className="mt-4">
+            <Link
+              href="/tinuska/anglictina/sprava"
+              className="text-base font-medium text-[#3b82f6] underline-offset-4 transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2"
+              aria-label="Správa vlastních slovíček"
+            >
+              Správa slovíček (doplň vlastní)
+            </Link>
           </p>
           <p
             className="mt-4 inline-flex flex-wrap items-center justify-center gap-2 rounded-2xl border-2 border-teal-200 bg-white/90 px-5 py-3 text-lg font-bold text-teal-900 shadow-sm sm:justify-start"
@@ -165,7 +181,7 @@ export function AnglictinaHub() {
             </span>{" "}
             z {totalWords} slovíček
             <span className="sr-only">
-              (po třech správných odpovědích v kvízech u každého slovíčka)
+              (po správných odpovědích v hrách u každého slovíčka)
             </span>
           </p>
         </header>
@@ -178,11 +194,15 @@ export function AnglictinaHub() {
           />
         ) : (
           <p className="text-base text-slate-500">
-            Vyber kategorii – uvidíš, kolik slovíček v ní už máš na tři hvězdy.
+            Klikni na kategorii níže – uvidíš postup učení v ní.
           </p>
         )}
 
-        <CategorySelector value={categoryId} onChange={setCategoryId} />
+        <CategorySelector
+          value={categoryId}
+          onChange={setCategoryId}
+          mergedWords={mergedWords}
+        />
 
         <ModeSelector value={mode} onChange={setMode} />
 
@@ -191,19 +211,19 @@ export function AnglictinaHub() {
             type="button"
             onClick={startRandom}
             className="rounded-2xl border-4 border-amber-300 bg-gradient-to-r from-amber-200 to-orange-200 px-8 py-4 text-xl font-extrabold text-amber-950 shadow-lg transition hover:scale-[1.02] hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600"
-            aria-label="Náhodná kategorie a náhodný herní mód"
+            aria-label="Náhodný mód a výběr sady slovíček"
           >
             🎲 Náhodný mód
           </button>
           <button
             type="button"
-            onClick={startPlay}
-            disabled={!categoryId || !mode || !isGameModeImplemented(mode)}
-            aria-disabled={!categoryId || !mode || !isGameModeImplemented(mode)}
+            onClick={goWordSet}
+            disabled={!mode || !isGameModeImplemented(mode)}
+            aria-disabled={!mode || !isGameModeImplemented(mode)}
             className="rounded-2xl border-4 border-teal-400 bg-gradient-to-r from-teal-300 to-cyan-300 px-10 py-4 text-xl font-extrabold text-teal-950 shadow-lg transition enabled:hover:scale-[1.02] enabled:hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 disabled:cursor-not-allowed disabled:opacity-50"
-            aria-label="Začít hru s vybranou kategorií a módem"
+            aria-label="Pokračovat k výběru sady slovíček"
           >
-            ▶ Začít hrát
+            ▶ Vybrat slovíčka a hrát
           </button>
         </div>
       </div>

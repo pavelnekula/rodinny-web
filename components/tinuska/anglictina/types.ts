@@ -1,9 +1,20 @@
-export type CategoryId = "colors" | "furniture" | "toys" | "body";
+export type CategoryId =
+  | "colors"
+  | "furniture"
+  | "toys"
+  | "body"
+  | "food"
+  | "numbers"
+  | "school"
+  | "toBe"
+  | "toHave";
 
 export interface Word {
   id: string;
   en: string;
   cs: string;
+  /** Jednoduchá příkladová věta v angličtině (A1/A2) s daným slovíčkem */
+  sentence: string;
   emoji: string;
   categoryId: CategoryId;
 }
@@ -18,13 +29,7 @@ export interface CategoryMeta {
   tileClass: string;
 }
 
-export type GameMode =
-  | "flashcards"
-  | "fillLetters"
-  | "multipleChoice"
-  | "memory"
-  | "listenChoose"
-  | "speedQuiz";
+export type GameMode = "flashcards" | "memory" | "fillLetters";
 
 export interface GameModeMeta {
   id: GameMode;
@@ -33,7 +38,10 @@ export interface GameModeMeta {
   icon: string;
 }
 
-/** Per-word correct answers (quizzes); flashcards do not auto-increment */
+/** Klíč sady slovíček: konkrétní kategorie nebo mix ze všech */
+export type WordSetKey = CategoryId | "mix";
+
+/** Per-word correct answers (kvízy); volitelné pro kompatibilitu */
 export interface WordProgress {
   wordId: string;
   correctCount: number;

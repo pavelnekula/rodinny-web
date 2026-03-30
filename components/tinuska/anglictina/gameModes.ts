@@ -4,59 +4,33 @@ export const GAME_MODE_METAS: readonly GameModeMeta[] = [
   {
     id: "flashcards",
     titleCs: "Kartičky",
-    descriptionCs: "Obrázek + anglicky, otoč na česky",
+    descriptionCs: "Otoč kartu a zkus si pamatovat překlad",
     icon: "🃏",
-  },
-  {
-    id: "fillLetters",
-    titleCs: "Doplň písmena",
-    descriptionCs: "Slož slovo z písmen",
-    icon: "🔤",
-  },
-  {
-    id: "multipleChoice",
-    titleCs: "Výběr ze 4",
-    descriptionCs: "Vyber správný překlad",
-    icon: "✅",
   },
   {
     id: "memory",
     titleCs: "Pexeso",
-    descriptionCs: "Páruj slovo a obrázek",
-    icon: "🧠",
+    descriptionCs: "Spáruj anglické slovo s českým překladem",
+    icon: "🧩",
   },
   {
-    id: "listenChoose",
-    titleCs: "Poslechni a vyber",
-    descriptionCs: "Slyš slovo, klikni obrázek",
-    icon: "👂",
-  },
-  {
-    id: "speedQuiz",
-    titleCs: "Rychlý kvíz",
-    descriptionCs: "60 sekund, co nejvíc bodů",
-    icon: "⏱️",
+    id: "fillLetters",
+    titleCs: "Doplň písmena",
+    descriptionCs: "Doplň chybějící písmena podle nápovědy",
+    icon: "✏️",
   },
 ] as const;
 
-/** Módy již implementované v aplikaci */
 export const IMPLEMENTED_GAME_MODES = new Set<GameMode>([
   "flashcards",
-  "fillLetters",
-  "multipleChoice",
   "memory",
-  "listenChoose",
-  "speedQuiz",
+  "fillLetters",
 ]);
 
-/** Pořadí pro náhodný mód */
 export const ALL_IMPLEMENTED_MODES: readonly GameMode[] = [
   "flashcards",
-  "fillLetters",
-  "multipleChoice",
   "memory",
-  "listenChoose",
-  "speedQuiz",
+  "fillLetters",
 ] as const;
 
 export function isGameModeImplemented(mode: GameMode): boolean {

@@ -1,0 +1,216 @@
+/**
+ * Jednorázový helper: doplní pole sentence před categoryId v VocabularyData.ts
+ * Spuštění: node scripts/patch-tinuska-vocab-sentences.mjs
+ */
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const filePath = path.join(
+  __dirname,
+  "..",
+  "components",
+  "tinuska",
+  "anglictina",
+  "VocabularyData.ts",
+);
+
+/** @type {Record<string, string>} */
+const SENTENCES = {
+  black: "The cat is black.",
+  blue: "The sky is blue today.",
+  brown: "My shoes are brown.",
+  green: "The grass is green.",
+  orange: "I like orange juice.",
+  pink: "She has a pink bag.",
+  purple: "The flower is purple.",
+  red: "The apple is red.",
+  white: "The snow is white.",
+  yellow: "The sun is yellow.",
+  bathroom: "I brush my teeth in the bathroom.",
+  bed: "I sleep in my bed at night.",
+  bookcase: "The books are in the bookcase.",
+  "bunk-bed": "My friend sleeps on the bunk bed.",
+  chair: "I sit on a chair.",
+  cupboard: "The cups are in the cupboard.",
+  fireplace: "It is warm near the fireplace.",
+  kitchen: "We cook in the kitchen.",
+  painting: "There is a painting on the wall.",
+  rug: "The rug is on the floor.",
+  "sitting-room": "We sit in the sitting room.",
+  sofa: "We relax on the sofa.",
+  table: "We eat at the table.",
+  "toy-box": "My toys are in the toy box.",
+  vase: "The flowers are in the vase.",
+  wardrobe: "My clothes are in the wardrobe.",
+  "washing-machine": "Mum uses the washing machine.",
+  on: "The book is on the table.",
+  in: "The cat is in the box.",
+  under: "The ball is under the chair.",
+  ball: "I kick a ball in the park.",
+  bike: "I ride my bike to school.",
+  "board-game": "We play a board game at home.",
+  car: "My toy car is red.",
+  cards: "We play with cards.",
+  "computer-game": "I play a computer game on Friday.",
+  dinosaur: "The dinosaur toy is big.",
+  doll: "My doll has a blue dress.",
+  draughts: "We play draughts after school.",
+  football: "I like playing football.",
+  lorry: "The lorry carries boxes.",
+  ludo: "We play Ludo with my sister.",
+  "racing-car": "The racing car is very fast.",
+  robot: "My robot can walk.",
+  rocket: "The rocket flies to space.",
+  rollerblades: "I wear rollerblades in the park.",
+  skateboard: "He rides a skateboard.",
+  skittles: "We play skittles in the garden.",
+  "snakes-and-ladders": "We play Snakes and Ladders.",
+  train: "The train goes choo-choo.",
+  arm: "I wave with my arm.",
+  body: "I wash my body in the bath.",
+  foot: "I hurt my foot yesterday.",
+  leg: "I run fast on my legs.",
+  head: "I nod my head.",
+  eye: "I close one eye.",
+  ear: "I hear with my ear.",
+  nose: "I touch my nose.",
+  mouth: "I open my mouth to speak.",
+  hand: "I write with my hand.",
+  apple: "I eat an apple every day.",
+  apricot: "The apricot is sweet.",
+  banana: "Monkeys like bananas.",
+  biscuits: "We have biscuits for tea.",
+  breakfast: "I eat breakfast at seven.",
+  chocolate: "I love chocolate cake.",
+  dinner: "We have dinner at six.",
+  "ice-cream": "Ice cream is cold and sweet.",
+  lemon: "The lemon is sour.",
+  lunch: "I pack lunch for school.",
+  milk: "I drink milk in the morning.",
+  milkshake: "I make a milkshake with milk.",
+  mushrooms: "We cook mushrooms for soup.",
+  olives: "Olives are in the salad.",
+  pasta: "We eat pasta on Tuesday.",
+  peach: "The peach is soft and sweet.",
+  pear: "I bite a green pear.",
+  peppers: "Red peppers are in the salad.",
+  pizza: "We share a pizza on Friday.",
+  plum: "The plum is purple.",
+  sandwich: "I make a cheese sandwich.",
+  snack: "I have a snack after school.",
+  steak: "Dad cooks steak on Sunday.",
+  sweets: "I eat sweets on holidays.",
+  tea: "Grandma drinks tea with honey.",
+  one: "I have one little brother.",
+  two: "I see two birds.",
+  three: "Three cats sit on the wall.",
+  four: "I am four years old.",
+  five: "School starts at five past eight.",
+  six: "Six ducks swim in the pond.",
+  seven: "I wake up at seven o'clock.",
+  eight: "Eight friends play together.",
+  nine: "Nine apples are in the bowl.",
+  ten: "I can count to ten.",
+  eleven: "My cousin is eleven.",
+  twelve: "There are twelve months in a year.",
+  thirteen: "Room thirteen is our classroom.",
+  fourteen: "Fourteen days make two weeks.",
+  fifteen: "The bus leaves at fifteen past three.",
+  sixteen: "She is sixteen years old.",
+  seventeen: "Seventeen students are in my class.",
+  eighteen: "You can vote at eighteen.",
+  nineteen: "Nineteen is my lucky number.",
+  twenty: "I count up to twenty.",
+  book: "I read a book every evening.",
+  rubber: "I use a rubber when I make a mistake.",
+  ruler: "I draw a line with a ruler.",
+  pencil: "I write with a pencil.",
+  pen: "My pen is blue.",
+  "pencil-case": "My pencils are in the pencil case.",
+  glue: "I use glue for my picture.",
+  school: "I walk to school with Mum.",
+  classroom: "Our classroom is bright and big.",
+  pupils: "The pupils listen to the teacher.",
+  computer: "We use a computer in class.",
+  "tb-i-am": "I am a happy pupil.",
+  "tb-you-ty": "You are my friend.",
+  "tb-you-vy": "You are very kind, class.",
+  "tb-he-is": "He is my brother.",
+  "tb-she-is": "She is my teacher.",
+  "tb-it-is": "It is a sunny day.",
+  "tb-we-are": "We are in the same class.",
+  "tb-they-are": "They are my classmates.",
+  "tb-i-am-not": "I am not sad today.",
+  "tb-are-you": "Are you ready for school?",
+  "tb-is-he": "Is he at home?",
+  "tb-is-she": "Is she your sister?",
+  "tb-im-happy": "I'm happy on my birthday.",
+  "tb-she-is-tall": "She is tall like a basketball player.",
+  "tb-he-is-funny": "He is funny and kind.",
+  "tb-we-are-friends": "We are friends forever.",
+  "tb-it-is-cold": "It is cold in winter.",
+  "tb-they-are-nice": "They are nice to everyone.",
+  "tb-what-is-it": "What is it in the box?",
+  "tb-how-old-are-you": "How old are you this year?",
+  "th-i-have": "I have a new bag.",
+  "th-you-tu": "You have a red pencil.",
+  "th-you-vu": "You have good ideas, everyone.",
+  "th-he-has": "He has a small dog.",
+  "th-she-has": "She has a blue bike.",
+  "th-it-has": "It has four legs.",
+  "th-we-have": "We have English on Monday.",
+  "th-they-have": "They have a big garden.",
+  "th-i-dont-have": "I don't have a sister.",
+  "th-do-you-have": "Do you have a pen?",
+  "th-does-he-have": "Does he have a football?",
+  "th-i-have-a-dog": "I have a dog at home.",
+  "th-she-has-a-cat": "She has a cat named Luna.",
+  "th-he-has-a-bike": "He has a bike with a bell.",
+  "th-we-have-a-car": "We have a car for trips.",
+  "th-i-have-lunch": "I have lunch at school.",
+  "th-she-has-breakfast": "She has breakfast at seven.",
+  "th-do-you-have-a-pen": "Do you have a pen for me?",
+  "th-i-have-blue-eyes": "I have blue eyes like Mum.",
+  "th-he-has-blond-hair": "He has blond hair and a smile.",
+};
+
+function esc(s) {
+  return s.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+}
+
+let text = fs.readFileSync(filePath, "utf8");
+
+if (text.includes("\n    sentence:")) {
+  console.log("Already patched. Skip.");
+  process.exit(0);
+}
+
+const lines = text.split("\n");
+const out = [];
+let inVocab = false;
+let lastWordId = null;
+
+for (let i = 0; i < lines.length; i++) {
+  const line = lines[i];
+  if (line.includes("export const VOCABULARY_WORDS")) inVocab = true;
+  if (inVocab) {
+    const idM = line.match(/^\s*id:\s*"([^"]+)",?\s*$/);
+    if (idM) lastWordId = idM[1];
+    if (line.includes("categoryId:") && lastWordId) {
+      const s = SENTENCES[lastWordId];
+      if (s) {
+        const indent = line.match(/^(\s*)/)[1];
+        out.push(`${indent}sentence: "${esc(s)}",`);
+      } else {
+        console.warn("Missing sentence map for id:", lastWordId);
+      }
+      lastWordId = null;
+    }
+  }
+  out.push(line);
+}
+
+fs.writeFileSync(filePath, out.join("\n"));
+console.log("Patched:", filePath);

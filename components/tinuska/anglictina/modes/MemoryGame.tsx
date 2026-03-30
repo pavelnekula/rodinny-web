@@ -1,70 +1,106 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { Word } from "../types";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { Word, WordSetKey } from "../types";
 import { shuffle } from "../utils/shuffle";
+import { useGameSounds } from "../hooks/useGameSounds";
+import { useGameHighScores } from "../hooks/useGameHighScores";
 
-type MemoryCard = {
+type Face = "en" | "cs";
+
+type MemCard = {
   uid: string;
   wordId: string;
-  face: "word" | "emoji";
+  face: Face;
   word: Word;
 };
 
 type MemoryGameProps = {
   words: Word[];
   categoryLabel: string;
+  wordSetKey: WordSetKey;
   onExit: () => void;
   onCorrectAnswer: (wordId: string) => void;
 };
 
-const MAX_PAIRS = 10;
+const PAIRS_TARGET = 10;
 
-function buildDeck(subset: Word[]): MemoryCard[] {
-  const cards: MemoryCard[] = [];
+function buildDeck(subset: Word[]): MemCard[] {
+  const cards: MemCard[] = [];
   for (const w of subset) {
     cards.push({
       uid: `${w.id}-en`,
       wordId: w.id,
-      face: "word",
+      face: "en",
       word: w,
     });
     cards.push({
-      uid: `${w.id}-em`,
+      uid: `${w.id}-cs`,
       wordId: w.id,
-      face: "emoji",
+      face: "cs",
       word: w,
     });
   }
   return shuffle(cards);
 }
 
+function bonusForPair(dtSec: number): number {
+  if (dtSec <= 3) return 5;
+  if (dtSec <= 6) return 3;
+  if (dtSec <= 10) return 1;
+  return 0;
+}
+
+function starRating(moves: number): 1 | 2 | 3 {
+  if (moves < 18) return 3;
+  if (moves < 25) return 2;
+  return 1;
+}
+
 export function MemoryGame({
   words,
   categoryLabel,
+  wordSetKey,
   onExit,
   onCorrectAnswer,
 }: MemoryGameProps) {
-  const pairCount = Math.min(MAX_PAIRS, words.length);
-  const [deck, setDeck] = useState<MemoryCard[]>([]);
+  const { playCorrect, playWrong, playFanfare } = useGameSounds();
+  const { getHighScore, saveIfBetter } = useGameHighScores();
+
+  const wordsSig = useMemo(
+    () => [...words].map((w) => w.id).sort().join(","),
+    [words],
+  );
+  const pairCount = Math.min(PAIRS_TARGET, Math.max(1, words.length));
+  const subset = useMemo(() => {
+    return shuffle([...words]).slice(0, pairCount);
+  }, [wordsSig, words, pairCount]);
+
+  const [deck, setDeck] = useState<MemCard[]>([]);
   const [flipped, setFlipped] = useState<string[]>([]);
   const [matched, setMatched] = useState<Set<string>>(() => new Set());
   const [moves, setMoves] = useState(0);
-  const [seconds, setSeconds] = useState(0);
+  const [score, setScore] = useState(0);
+  const [centi, setCenti] = useState(0);
   const [lock, setLock] = useState(false);
   const [done, setDone] = useState(false);
+  const pairStartRef = useRef<number | null>(null);
+  const completionRef = useRef(false);
+  const scoreRef = useRef(0);
+  scoreRef.current = score;
 
   const resetGame = useCallback(() => {
-    const subset = shuffle([...words]).slice(0, pairCount);
+    completionRef.current = false;
     setDeck(buildDeck(subset));
     setFlipped([]);
     setMatched(new Set());
     setMoves(0);
-    setSeconds(0);
+    setScore(0);
+    setCenti(0);
     setLock(false);
     setDone(false);
-  }, [words, pairCount]);
+    pairStartRef.current = null;
+  }, [subset]);
 
   useEffect(() => {
     resetGame();
@@ -72,22 +108,34 @@ export function MemoryGame({
 
   useEffect(() => {
     if (done) return;
-    const t = window.setInterval(() => setSeconds((s) => s + 1), 1000);
+    const t = window.setInterval(() => setCenti((c) => c + 1), 10);
     return () => window.clearInterval(t);
   }, [done]);
 
   useEffect(() => {
-    if (matched.size >= pairCount && pairCount > 0) {
-      setDone(true);
+    if (matched.size < pairCount || pairCount === 0 || completionRef.current) {
+      return;
     }
-  }, [matched, pairCount]);
+    completionRef.current = true;
+    setDone(true);
+    playFanfare();
+    queueMicrotask(() => {
+      saveIfBetter("memory", wordSetKey, scoreRef.current);
+    });
+  }, [matched, pairCount, playFanfare, saveIfBetter, wordSetKey]);
+
+  const secondsDisplay = (centi / 100).toFixed(1);
 
   const onCardClick = useCallback(
-    (card: MemoryCard) => {
+    (card: MemCard) => {
       if (lock || done) return;
       if (matched.has(card.wordId)) return;
       if (flipped.includes(card.uid)) return;
       if (flipped.length >= 2) return;
+
+      if (flipped.length === 0) {
+        pairStartRef.current = performance.now();
+      }
 
       const next = [...flipped, card.uid];
       setFlipped(next);
@@ -99,28 +147,51 @@ export function MemoryGame({
       const [a, b] = next;
       const ca = deck.find((c) => c.uid === a);
       const cb = deck.find((c) => c.uid === b);
-      if (ca && cb && ca.wordId === cb.wordId) {
+      if (!ca || !cb) {
+        setLock(false);
+        return;
+      }
+
+      const isPair =
+        ca.wordId === cb.wordId && ca.face !== cb.face;
+
+      if (isPair) {
+        const dt =
+          pairStartRef.current != null
+            ? (performance.now() - pairStartRef.current) / 1000
+            : 10;
+        const bonusPts = bonusForPair(dt);
+        setScore((s) => s + 10 + bonusPts);
+        playCorrect();
         onCorrectAnswer(ca.wordId);
         window.setTimeout(() => {
           setMatched((prev) => new Set(prev).add(ca.wordId));
           setFlipped([]);
           setLock(false);
+          pairStartRef.current = null;
         }, 450);
       } else {
+        playWrong();
+        setScore((s) => Math.max(0, s - 2));
         window.setTimeout(() => {
           setFlipped([]);
           setLock(false);
-        }, 900);
+          pairStartRef.current = null;
+        }, 1000);
       }
     },
-    [lock, done, matched, flipped, deck, onCorrectAnswer, pairCount],
+    [lock, done, matched, flipped, deck, onCorrectAnswer, playCorrect, playWrong],
   );
 
-  const gridCols = useMemo(() => {
+  const gridClass = useMemo(() => {
     const n = deck.length;
+    if (n === 20) return "grid-cols-5 grid-rows-4";
     if (n <= 12) return "grid-cols-3 sm:grid-cols-4";
-    return "grid-cols-4 sm:grid-cols-5";
+    if (n <= 20) return "grid-cols-4 sm:grid-cols-5";
+    return "grid-cols-5";
   }, [deck.length]);
+
+  const best = getHighScore("memory", wordSetKey);
 
   if (words.length < 2) {
     return (
@@ -131,30 +202,35 @@ export function MemoryGame({
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="text-lg font-semibold text-slate-700">
-          <p>{categoryLabel} · Pexeso</p>
-          <p className="text-base font-normal text-slate-600">
+        <div>
+          <p className="text-lg font-bold text-slate-800">
+            {categoryLabel} · Pexeso
+          </p>
+          <p className="text-base text-slate-600">
             Tahy: <span className="font-bold tabular-nums">{moves}</span> · Čas:{" "}
-            <span className="font-bold tabular-nums">{seconds}</span> s · Páry:{" "}
-            {matched.size}/{pairCount}
+            <span className="font-bold tabular-nums">{secondsDisplay}</span> s ·
+            Body: <span className="font-bold tabular-nums">{score}</span>
+            {best > 0 ? (
+              <span className="ml-2 text-teal-700">
+                · Rekord: {best}
+              </span>
+            ) : null}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex gap-2">
           <button
             type="button"
             onClick={resetGame}
-            className="rounded-xl border-2 border-amber-300 bg-amber-100 px-4 py-2 text-base font-semibold text-amber-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600"
-            aria-label="Hrát znovu"
+            className="rounded-xl border-2 border-amber-300 bg-amber-100 px-4 py-2 font-semibold text-amber-950"
           >
             Znovu
           </button>
           <button
             type="button"
             onClick={onExit}
-            className="rounded-xl border-2 border-slate-300 bg-white px-4 py-2 text-base font-semibold text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500"
-            aria-label="Zpět na výběr"
+            className="rounded-xl border-2 border-slate-300 bg-white px-4 py-2 font-semibold text-slate-700"
           >
             ← Zpět
           </button>
@@ -162,73 +238,92 @@ export function MemoryGame({
       </div>
 
       {done ? (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="rounded-3xl border-4 border-emerald-300 bg-emerald-50 p-8 text-center shadow-lg"
-          role="status"
-        >
-          <p className="text-3xl font-extrabold text-emerald-900">Hotovo! 🎉</p>
-          <p className="mt-2 text-lg text-emerald-800">
-            Dokončeno za <strong>{moves}</strong> tahů a{" "}
-            <strong>{seconds}</strong> sekund.
-          </p>
-          <button
-            type="button"
-            onClick={resetGame}
-            className="mt-6 rounded-2xl border-4 border-teal-400 bg-teal-200 px-8 py-3 text-xl font-bold text-teal-950 shadow"
-            aria-label="Hrát znovu"
+        <div className="relative overflow-hidden rounded-3xl border-4 border-emerald-400 bg-emerald-50 p-8 text-center shadow-xl">
+          <div
+            className="pointer-events-none absolute inset-0 flex flex-wrap justify-center gap-2 p-4 opacity-50"
+            aria-hidden
           >
-            Hrát znovu
-          </button>
-        </motion.div>
+            {["🎉", "✨", "🎊", "⭐", "🌟"].map((e, i) => (
+              <span
+                key={i}
+                className="animate-bounce text-3xl"
+                style={{ animationDelay: `${i * 0.1}s` }}
+              >
+                {e}
+              </span>
+            ))}
+          </div>
+          <p className="relative text-3xl font-extrabold text-emerald-900">
+            Hotovo! 🎉
+          </p>
+          <p className="relative mt-2 text-lg text-emerald-800">
+            Čas: <strong>{secondsDisplay}</strong> s · Tahů:{" "}
+            <strong>{moves}</strong> · Body: <strong>{score}</strong>
+          </p>
+          <p className="relative mt-4 text-5xl" aria-label="Hvězdy">
+            {"⭐".repeat(starRating(moves))}
+          </p>
+          <p className="relative mt-2 text-sm text-slate-600">
+            1⭐ dokončeno · 2⭐ méně než 25 tahů · 3⭐ méně než 18 tahů
+          </p>
+          <div className="relative mt-6 flex flex-wrap justify-center gap-3">
+            <button
+              type="button"
+              onClick={resetGame}
+              className="rounded-2xl border-4 border-teal-400 bg-teal-200 px-8 py-3 text-xl font-bold text-teal-950"
+            >
+              Hrát znovu
+            </button>
+            <button
+              type="button"
+              onClick={onExit}
+              className="rounded-2xl border-2 border-slate-400 bg-white px-8 py-3 text-xl font-bold text-slate-700"
+            >
+              Zpět
+            </button>
+          </div>
+        </div>
       ) : null}
 
-      <div className={`grid gap-2 ${gridCols}`}>
-        {deck.map((card) => {
-          const isOpen = flipped.includes(card.uid) || matched.has(card.wordId);
-          return (
-            <motion.button
-              key={card.uid}
-              type="button"
-              layout
-              onClick={() => onCardClick(card)}
-              disabled={lock && !isOpen}
-              aria-label={
-                isOpen
-                  ? card.face === "word"
-                    ? `Anglické slovo ${card.word.en}`
-                    : `Obrázek pro ${card.word.en}`
-                  : "Skrytá karta"
-              }
-              className={`flex min-h-[5.5rem] items-center justify-center rounded-2xl border-2 p-2 text-center shadow transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 disabled:cursor-default ${
-                matched.has(card.wordId)
-                  ? "border-emerald-400 bg-emerald-100"
-                  : isOpen
-                    ? "border-teal-300 bg-white"
-                    : "border-slate-300 bg-gradient-to-br from-violet-100 to-teal-100 hover:brightness-105"
-              }`}
-              whileTap={isOpen || matched.has(card.wordId) ? undefined : { scale: 0.96 }}
-            >
-              {isOpen ? (
-                card.face === "word" ? (
-                  <span className="px-1 text-base font-bold capitalize text-slate-800 sm:text-lg">
-                    {card.word.en}
-                  </span>
+      {!done ? (
+        <div className={`grid gap-2 ${gridClass}`}>
+          {deck.map((card) => {
+            const isOpen =
+              flipped.includes(card.uid) || matched.has(card.wordId);
+            const isMatched = matched.has(card.wordId);
+            return (
+              <button
+                key={card.uid}
+                type="button"
+                onClick={() => onCardClick(card)}
+                disabled={lock && !isOpen}
+                className={`flex min-h-[4.5rem] flex-col items-center justify-center rounded-2xl border-2 p-2 text-center shadow transition [transform-style:preserve-3d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 sm:min-h-[5.5rem] ${
+                  isMatched
+                    ? "border-emerald-500 bg-emerald-100/90 opacity-90"
+                    : isOpen
+                      ? card.face === "en"
+                        ? "border-blue-500 bg-blue-100"
+                        : "border-red-500 bg-red-100"
+                      : "border-[#e5e7eb] bg-[#f3f4f6] hover:bg-[#e5e7eb]"
+                }`}
+              >
+                {isOpen ? (
+                  <>
+                    <span className="text-lg" aria-hidden>
+                      {card.face === "en" ? "🇬🇧" : "🇨🇿"}
+                    </span>
+                    <span className="mt-1 px-1 text-sm font-bold leading-tight text-slate-900 sm:text-base">
+                      {card.face === "en" ? card.word.en : card.word.cs}
+                    </span>
+                  </>
                 ) : (
-                  <span className="text-5xl" role="img" aria-hidden>
-                    {card.word.emoji}
-                  </span>
-                )
-              ) : (
-                <span className="text-3xl" aria-hidden>
-                  ❓
-                </span>
-              )}
-            </motion.button>
-          );
-        })}
-      </div>
+                  <span className="text-2xl font-bold text-slate-600">?</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
     </div>
   );
 }
