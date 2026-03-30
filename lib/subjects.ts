@@ -17,4 +17,5 @@ export const teoSubjects: readonly SubjectNav[] = [
   { name: "Matematika", emoji: "🔢", href: "/teo" },
   { name: "Zeměpis", emoji: "🗺️", href: "/teo" },
   { name: "Fyzika", emoji: "⚡", href: "/teo" },
+  { name: "Angličtina", emoji: "🇬🇧", href: "/teo/anglictina" },
 ] as const;
