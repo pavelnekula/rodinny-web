@@ -13,6 +13,8 @@ import {
   type WineOrderLine,
 } from "@/lib/wine-order";
 
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 const OWNER_EMAIL = "pavelnekula@gmail.com";
 
 /** Odesílatel dle zadání (Resend testovací doména). */
@@ -206,6 +208,9 @@ function parseBody(data: unknown): {
 }
 
 export async function POST(request: Request) {
+  console.log("API route zavolána");
+  console.log("RESEND_API_KEY exists:", !!process.env.RESEND_API_KEY);
+
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
@@ -247,22 +252,27 @@ export async function POST(request: Request) {
 
   const to = Array.from(new Set([email, OWNER_EMAIL]));
 
-  const resend = new Resend(apiKey);
-  const { error } = await resend.emails.send({
-    from: RESEND_FROM,
-    to,
-    subject: "Nová objednávka vína – Sklep u Kapličky",
-    html,
-    text,
-  });
+  try {
+    const result = await resend.emails.send({
+      from: RESEND_FROM,
+      to,
+      subject: "Nová objednávka vína – Sklep u Kapličky",
+      html,
+      text,
+    });
+    console.log("Resend result:", result);
 
-  if (error) {
-    console.error("[send-wine-order]", error);
-    return NextResponse.json(
-      { error: "Odeslání e-mailu se nezdařilo." },
-      { status: 502 },
-    );
+    if (result.error) {
+      console.error("Resend API error:", result.error);
+      return NextResponse.json(
+        { error: "Odeslání e-mailu se nezdařilo." },
+        { status: 502 },
+      );
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("Resend error:", error);
+    return Response.json({ error: String(error) }, { status: 500 });
   }
-
-  return NextResponse.json({ ok: true });
 }
