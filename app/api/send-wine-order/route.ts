@@ -15,11 +15,6 @@ import {
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const OWNER_EMAIL = "pavelnekula@gmail.com";
-
-/** Odesílatel dle zadání (Resend testovací doména). */
-const RESEND_FROM = "onboarding@resend.dev";
-
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")
@@ -208,8 +203,7 @@ function parseBody(data: unknown): {
 }
 
 export async function POST(request: Request) {
-  console.log("API route zavolána");
-  console.log("RESEND_API_KEY exists:", !!process.env.RESEND_API_KEY);
+  console.log("API KEY exists:", !!process.env.RESEND_API_KEY);
 
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
@@ -250,11 +244,11 @@ export async function POST(request: Request) {
     note,
   });
 
-  const to = Array.from(new Set([email, OWNER_EMAIL]));
+  const to = [email, "pavelnekula@gmail.com"];
 
   try {
     const result = await resend.emails.send({
-      from: RESEND_FROM,
+      from: "onboarding@resend.dev",
       to,
       subject: "Nová objednávka vína – Sklep u Kapličky",
       html,
@@ -264,15 +258,27 @@ export async function POST(request: Request) {
 
     if (result.error) {
       console.error("Resend API error:", result.error);
+      const errMsg =
+        typeof result.error === "object" &&
+        result.error !== null &&
+        "message" in result.error &&
+        typeof (result.error as { message?: string }).message === "string"
+          ? (result.error as { message: string }).message
+          : JSON.stringify(result.error);
       return NextResponse.json(
-        { error: "Odeslání e-mailu se nezdařilo." },
+        { error: errMsg },
         { status: 502 },
       );
     }
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error("Resend error:", error);
-    return Response.json({ error: String(error) }, { status: 500 });
+    console.error("Resend chyba:", error);
+    return Response.json(
+      {
+        error: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 },
+    );
   }
 }
