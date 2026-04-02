@@ -29,6 +29,9 @@ export default function Home() {
             <Link href="/sklep-u-kaplicky" className={navLinkClass}>
               Sklep u Kapličky
             </Link>
+            <Link href="/fyzika-teodor" className={navLinkClass}>
+              Fyzika pro Teodora
+            </Link>
           </nav>
         </div>
       </aside>

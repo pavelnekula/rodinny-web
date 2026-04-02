@@ -13,8 +13,6 @@ import {
   type WineOrderLine,
 } from "@/lib/wine-order";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")
@@ -247,6 +245,7 @@ export async function POST(request: Request) {
   const to = [email, "pavelnekula@gmail.com"];
 
   try {
+    const resend = new Resend(apiKey);
     const result = await resend.emails.send({
       from: "onboarding@resend.dev",
       to,
