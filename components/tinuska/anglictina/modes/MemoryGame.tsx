@@ -5,6 +5,7 @@ import type { Word, WordSetKey } from "../types";
 import { shuffle } from "../utils/shuffle";
 import { useGameSounds } from "../hooks/useGameSounds";
 import { useGameHighScores } from "../hooks/useGameHighScores";
+import { useSpeech } from "../hooks/useSpeech";
 
 type Face = "en" | "cs";
 
@@ -66,6 +67,7 @@ export function MemoryGame({
 }: MemoryGameProps) {
   const { playCorrect, playWrong, playFanfare } = useGameSounds();
   const { getHighScore, saveIfBetter } = useGameHighScores();
+  const { speakSlow } = useSpeech();
 
   const wordsSig = useMemo(
     () => [...words].map((w) => w.id).sort().join(","),
@@ -105,6 +107,15 @@ export function MemoryGame({
   useEffect(() => {
     resetGame();
   }, [resetGame]);
+
+  useEffect(() => {
+    if (flipped.length === 0) return;
+    const lastUid = flipped[flipped.length - 1]!;
+    const card = deck.find((c) => c.uid === lastUid);
+    if (card?.face === "en") {
+      speakSlow(card.word.en);
+    }
+  }, [flipped, deck, speakSlow]);
 
   useEffect(() => {
     if (done) return;

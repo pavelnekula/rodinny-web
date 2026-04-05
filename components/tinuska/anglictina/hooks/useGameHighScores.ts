@@ -29,8 +29,8 @@ function writeStore(s: Store) {
   }
 }
 
-function keyForSet(setKey: WordSetKey): string {
-  return setKey;
+function keyForSet(setKey: WordSetKey | string): string {
+  return String(setKey);
 }
 
 export function useGameHighScores() {
@@ -41,7 +41,7 @@ export function useGameHighScores() {
   }, []);
 
   const getHighScore = useCallback(
-    (mode: GameMode, setKey: WordSetKey): number => {
+    (mode: GameMode, setKey: WordSetKey | string): number => {
       const k = keyForSet(setKey);
       return store[mode]?.[k] ?? 0;
     },
@@ -49,7 +49,7 @@ export function useGameHighScores() {
   );
 
   const saveIfBetter = useCallback(
-    (mode: GameMode, setKey: WordSetKey, score: number) => {
+    (mode: GameMode, setKey: WordSetKey | string, score: number) => {
       const k = keyForSet(setKey);
       setStore((prev) => {
         const next = { ...prev };

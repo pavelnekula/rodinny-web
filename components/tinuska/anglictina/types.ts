@@ -29,7 +29,16 @@ export interface CategoryMeta {
   tileClass: string;
 }
 
-export type GameMode = "flashcards" | "memory" | "fillLetters";
+export type GameMode =
+  | "flashcards"
+  | "memory"
+  | "fillLetters"
+  | "quizDuel"
+  | "luckyWheel"
+  | "adventureMap";
+
+/** Obtížnost kvízu (čas, směr překladu) */
+export type QuizDifficulty = "easy" | "medium" | "hard";
 
 export interface GameModeMeta {
   id: GameMode;

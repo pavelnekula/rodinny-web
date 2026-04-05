@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from "react";
 import type { Word } from "../types";
 import { shuffle } from "../utils/shuffle";
 import { SpeechButton } from "../shared/SpeechButton";
@@ -32,7 +38,8 @@ export function Flashcards({
 
   const current = queue[0];
 
-  useEffect(() => {
+  /** Před vykreslením — žádné jednosnímkové „probliknutí“ angličtiny z předchozí karty. */
+  useLayoutEffect(() => {
     setFlipped(false);
   }, [current?.id]);
 
@@ -179,10 +186,9 @@ export function Flashcards({
         ✅ {okCount} · ❌ {badCount}
       </p>
 
-      <div className="mx-auto w-full max-w-md [perspective:1200px]">
+      <div className="mx-auto w-full max-w-md">
         <div
-          className="relative aspect-[4/5] w-full cursor-pointer rounded-3xl border-4 border-white shadow-2xl outline-none transition-transform duration-500 [transform-style:preserve-3d] focus-visible:ring-4 focus-visible:ring-teal-400"
-          style={{ transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)" }}
+          className="relative aspect-[4/5] w-full cursor-pointer rounded-3xl border-4 border-[#e5e7eb] bg-[#ffffff] shadow-lg outline-none transition-shadow focus-visible:ring-4 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2"
           onClick={() => setFlipped((f) => !f)}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
@@ -194,42 +200,44 @@ export function Flashcards({
           tabIndex={0}
           aria-label={
             flipped
-              ? `Zadní strana: ${current.cs}. Klikni pro anglické slovo.`
-              : `Přední strana: ${current.en}. Klikni pro překlad.`
+              ? `Anglicky: ${current.en}. Klikni pro návrat na český význam.`
+              : `Česky: ${current.cs}. Klikni a uvidíš anglický překlad a větu.`
           }
         >
-          <span
-            className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-3xl bg-gradient-to-br from-sky-50 via-white to-teal-50 p-6 [backface-visibility:hidden]"
-          >
-            <span className="text-7xl sm:text-8xl" aria-hidden>
-              {current.emoji}
-            </span>
-            <span className="text-center text-3xl font-extrabold capitalize leading-tight text-slate-900 sm:text-4xl">
-              {current.en}
-            </span>
-            <span
-              className="pointer-events-auto"
-              onClick={(e) => e.stopPropagation()}
-              onKeyDown={(e) => e.stopPropagation()}
-            >
-              <SpeechButton
-                text={current.en}
-                label={`Vyslovit ${current.en}`}
-                className="h-14 w-14 text-3xl"
-              />
-            </span>
-          </span>
-          <span
-            className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-3xl bg-gradient-to-br from-indigo-50 via-white to-rose-50 p-6 [backface-visibility:hidden]"
-            style={{ transform: "rotateY(180deg)" }}
-          >
-            <p className="text-4xl font-extrabold text-teal-900 sm:text-5xl">
-              {current.cs}
-            </p>
-            <p className="text-center text-base font-medium leading-snug text-slate-700 sm:text-lg">
-              {current.sentence}
-            </p>
-          </span>
+          {!flipped ? (
+            <div className="flex h-full flex-col items-center justify-center gap-3 p-6">
+              <span className="text-7xl sm:text-8xl" aria-hidden>
+                {current.emoji}
+              </span>
+              <span className="text-center text-3xl font-extrabold leading-tight text-[#1a1a1a] sm:text-4xl">
+                {current.cs}
+              </span>
+              <p className="text-center text-sm font-medium text-[#6b7280] sm:text-base">
+                Překlad si řekni anglicky — pak klikni a zkontroluj
+              </p>
+            </div>
+          ) : (
+            <div className="flex h-full flex-col items-center justify-center gap-3 p-6">
+              <p className="text-center text-3xl font-extrabold capitalize leading-tight text-[#1a1a1a] sm:text-4xl">
+                {current.en}
+              </p>
+              <p className="text-center text-base font-medium leading-snug text-[#374151] sm:text-lg">
+                {current.sentence}
+              </p>
+              <span
+                className="pointer-events-auto"
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.stopPropagation()}
+              >
+                <SpeechButton
+                  text={current.en}
+                  label={`Vyslovit pomalu: ${current.en}`}
+                  className="h-14 w-14 text-3xl"
+                  slow
+                />
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
