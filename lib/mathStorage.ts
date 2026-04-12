@@ -220,16 +220,19 @@ export type PetiminutovkaGlobalStats = {
   recordDate: string | null;
 };
 
+/** Stejné jako prázdný výsledek statistik — pro počáteční stav bez čtení LocalStorage při SSR. */
+export const EMPTY_PETIMINUTOVKA_GLOBAL_STATS: PetiminutovkaGlobalStats = {
+  totalRuns: 0,
+  totalExamples: 0,
+  avgAccuracyPct: 0,
+  recordCorrect: 0,
+  recordDate: null,
+};
+
 export function getPetiminutovkaGlobalStats(): PetiminutovkaGlobalStats {
   const runs = readJson<PetiminutovkaRunLog[]>(PET_KEYS.runs) ?? [];
   if (runs.length === 0) {
-    return {
-      totalRuns: 0,
-      totalExamples: 0,
-      avgAccuracyPct: 0,
-      recordCorrect: 0,
-      recordDate: null,
-    };
+    return { ...EMPTY_PETIMINUTOVKA_GLOBAL_STATS };
   }
   let totalExamples = 0;
   let totalCorrect = 0;

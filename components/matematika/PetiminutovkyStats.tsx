@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
+  EMPTY_PETIMINUTOVKA_GLOBAL_STATS,
+  type PetiminutovkaGlobalStats,
   type PetiminutovkaRunLog,
   getPetiminutovkaGlobalStats,
   getPetiminutovkaRunsForChart,
@@ -25,7 +27,9 @@ function typLabel(t: PetiminutovkaRunLog["typ"]): string {
 }
 
 export function PetiminutovkyStats() {
-  const [stats, setStats] = useState(() => getPetiminutovkaGlobalStats());
+  const [stats, setStats] = useState<PetiminutovkaGlobalStats>(
+    EMPTY_PETIMINUTOVKA_GLOBAL_STATS,
+  );
   const [runs, setRuns] = useState<PetiminutovkaRunLog[]>([]);
 
   useEffect(() => {

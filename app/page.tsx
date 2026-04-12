@@ -1,9 +1,19 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+import { tinuskaSubjects } from "@/lib/subjects";
 
 export const dynamic = "force-dynamic";
 
+export const metadata: Metadata = {
+  description:
+    "Úvodní stránka rodinného webu — navigace na stránky Tinušky, Tea, sklepu a další.",
+};
+
 const navLinkClass =
   "w-fit text-lg font-medium text-[#1a1a1a] underline-offset-4 transition hover:text-[#3b82f6] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2";
+
+const subNavLinkClass =
+  "w-fit text-base font-medium text-[#1a1a1a] underline-offset-4 transition hover:text-[#3b82f6] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2";
 
 export default function Home() {
   const todayLabel = new Date().toLocaleDateString("cs-CZ", {
@@ -11,6 +21,9 @@ export default function Home() {
     month: "long",
     year: "numeric",
   });
+
+  const matikaSublinks = tinuskaSubjects.find((s) => s.name === "Matika")
+    ?.sublinks;
 
   return (
     <div className="flex min-h-screen flex-col bg-[#ffffff] text-[#1a1a1a] md:flex-row">
@@ -20,20 +33,35 @@ export default function Home() {
             className="flex flex-col gap-6"
             aria-label="Hlavní stránky webu"
           >
-            <Link href="/tinuska" className={navLinkClass}>
-              Tinuška
-            </Link>
+            <div className="flex flex-col gap-3">
+              <Link href="/tinuska" className={navLinkClass}>
+                Tinuška
+              </Link>
+              {matikaSublinks && matikaSublinks.length > 0 ? (
+                <div
+                  className="ml-0 flex flex-col gap-2 border-l-2 border-[#e5e7eb] pl-4 md:ml-1"
+                  aria-label="Matematika pro Tinušku"
+                >
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[#6b7280]">
+                    Matematika
+                  </p>
+                  <ul className="flex flex-col gap-2">
+                    {matikaSublinks.map((item) => (
+                      <li key={item.href}>
+                        <Link href={item.href} className={subNavLinkClass}>
+                          {item.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </div>
             <Link href="/teo" className={navLinkClass}>
               Teo
             </Link>
             <Link href="/sklep-u-kaplicky" className={navLinkClass}>
               Sklep u Kapličky
-            </Link>
-            <Link href="/fyzika-teodor" className={navLinkClass}>
-              Fyzika pro Teodora
-            </Link>
-            <Link href="/matematika" className={navLinkClass}>
-              Matematika (Tinuška)
             </Link>
           </nav>
         </div>
@@ -42,11 +70,14 @@ export default function Home() {
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-6 py-16 sm:px-8 sm:py-20 md:py-24 lg:px-10">
           <header className="text-center md:text-left">
-            <h1 className="text-4xl font-semibold leading-[1.15] tracking-tight text-[#1a1a1a] sm:text-5xl md:text-6xl">
+            <p className="text-sm font-medium uppercase tracking-wide text-[#6b7280]">
+              Rodinný web
+            </p>
+            <h1 className="mt-2 text-4xl font-semibold leading-[1.15] tracking-tight text-[#1a1a1a] sm:text-5xl md:text-6xl">
               Nekulovi
             </h1>
             <p className="mx-auto mt-8 max-w-2xl text-lg font-light leading-relaxed text-[#6b7280] sm:text-xl md:mx-0 md:max-w-none">
-              Odkazy na stránky jsou vlevo.
+              Vítej — odkazy na jednotlivé stránky jsou v levém menu.
             </p>
           </header>
         </main>

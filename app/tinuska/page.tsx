@@ -24,13 +24,51 @@ export default function TinuskaPage() {
         <ul className="grid gap-4 sm:grid-cols-2">
           {subjects.map((s) => {
             const cardClass =
-              "flex items-center gap-4 rounded-2xl border border-violet-200/80 bg-white/80 p-5 shadow-md shadow-violet-500/10 backdrop-blur-sm transition hover:border-violet-300 hover:shadow-lg";
+              "rounded-2xl border border-violet-200/80 bg-white/80 p-5 shadow-md shadow-violet-500/10 backdrop-blur-sm transition hover:border-violet-300 hover:shadow-lg";
+            const linkRowClass =
+              "flex items-center gap-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500";
+
+            if (s.sublinks && s.sublinks.length > 0) {
+              return (
+                <li key={s.name}>
+                  <div className={`${cardClass} flex flex-col gap-4`}>
+                    <div className={`${linkRowClass} pointer-events-none`}>
+                      <span className="text-3xl" aria-hidden>
+                        {s.emoji}
+                      </span>
+                      <span className="text-lg font-semibold text-slate-800">
+                        {s.name}
+                      </span>
+                    </div>
+                    <ul
+                      className="flex flex-col gap-2 border-t border-violet-200/60 pt-3"
+                      aria-label={`${s.name} — odkazy`}
+                    >
+                      {s.sublinks.map((sub) => (
+                        <li key={sub.href}>
+                          <Link
+                            href={sub.href}
+                            className="flex items-center justify-between rounded-xl px-3 py-2 text-sm font-medium text-violet-800 transition hover:bg-violet-100/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
+                          >
+                            <span>{sub.name}</span>
+                            <span className="text-violet-500" aria-hidden>
+                              →
+                            </span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </li>
+              );
+            }
+
             if (s.href !== "/tinuska") {
               return (
                 <li key={s.name}>
                   <Link
                     href={s.href}
-                    className={`${cardClass} block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500`}
+                    className={`${cardClass} ${linkRowClass} flex items-center`}
                     aria-label={`Otevřít ${s.name}`}
                   >
                     <span className="text-3xl" aria-hidden>
@@ -47,7 +85,7 @@ export default function TinuskaPage() {
               );
             }
             return (
-              <li key={s.name} className={cardClass}>
+              <li key={s.name} className={`${cardClass} flex items-center gap-4`}>
                 <span className="text-3xl" aria-hidden>
                   {s.emoji}
                 </span>

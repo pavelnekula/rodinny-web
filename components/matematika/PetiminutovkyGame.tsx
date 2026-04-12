@@ -174,7 +174,6 @@ function ratingTitle(correct: number): {
 }
 
 function Confetti({ show }: { show: boolean }) {
-  if (!show) return null;
   const pieces = useMemo(
     () =>
       Array.from({ length: 48 }, (_, i) => ({
@@ -186,6 +185,7 @@ function Confetti({ show }: { show: boolean }) {
       })),
     [],
   );
+  if (!show) return null;
   return (
     <div
       className="pointer-events-none fixed inset-0 z-[90] overflow-hidden"
