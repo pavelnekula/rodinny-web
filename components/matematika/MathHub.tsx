@@ -160,8 +160,8 @@ function buildCards(
     },
     {
       href: "/matematika/petiminutovky",
-      title: "Pětiminutovky",
-      desc: "Pět minut drilování — násobilka, dělení, po desítkách nebo vše najednou.",
+      title: "Tříminutovky",
+      desc: "Tři minuty drilování — násobilka, dělení, po desítkách nebo vše najednou.",
       emoji: "⏱️",
       border: "border-cyan-300",
       bg: "bg-gradient-to-br from-cyan-50 to-sky-100/90",

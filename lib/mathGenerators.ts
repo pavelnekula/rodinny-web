@@ -570,13 +570,6 @@ export type PetiminutovkaMixedTyp =
   | "scitani_odcitani"
   | "all";
 
-function randomMissing(): MathExampleMissing {
-  const r = Math.random();
-  if (r < 1 / 3) return "result";
-  if (r < 2 / 3) return "first";
-  return "second";
-}
-
 function tryPush(
   ring: PetiminutovkaRing20,
   ex: MathExample,
@@ -605,13 +598,13 @@ export function generateMixed(
   typ: PetiminutovkaMixedTyp,
   ring: PetiminutovkaRing20,
 ): MathExample {
+  /** U násobení a dělení zatím jen „dopočítej výsledek“ — oba činitele / dělenec i dělitel jsou v zadání. */
+  const onlyResult: MathExampleMissing = "result";
   if (typ === "nasobilka") {
-    return generateOneWithRing(ring, () =>
-      generateNasobilka(randomMissing()),
-    );
+    return generateOneWithRing(ring, () => generateNasobilka(onlyResult));
   }
   if (typ === "deleni") {
-    return generateOneWithRing(ring, () => generateDeleni(randomMissing()));
+    return generateOneWithRing(ring, () => generateDeleni(onlyResult));
   }
   if (typ === "scitani_odcitani") {
     return generateOneWithRing(ring, () =>
@@ -622,12 +615,10 @@ export function generateMixed(
   }
   const r = Math.random();
   if (r < 0.25) {
-    return generateOneWithRing(ring, () =>
-      generateNasobilka(randomMissing()),
-    );
+    return generateOneWithRing(ring, () => generateNasobilka(onlyResult));
   }
   if (r < 0.5) {
-    return generateOneWithRing(ring, () => generateDeleni(randomMissing()));
+    return generateOneWithRing(ring, () => generateDeleni(onlyResult));
   }
   if (r < 0.75) {
     return generateOneWithRing(ring, () => generateScitaniPo10(1000));

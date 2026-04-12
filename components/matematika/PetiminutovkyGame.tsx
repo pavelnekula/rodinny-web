@@ -29,7 +29,7 @@ import {
 } from "@/lib/mathStorage";
 import { MathNav } from "./MathNav";
 
-const TOTAL_MS = 5 * 60 * 1000;
+const TOTAL_MS = 3 * 60 * 1000;
 
 type Phase = "intro" | "play" | "done";
 
@@ -464,10 +464,10 @@ export function PetiminutovkyGame() {
 
         <header className="mb-8 text-center">
           <h1 className="text-3xl font-semibold tracking-tight text-[#1a1a1a] sm:text-4xl">
-            Pětiminutovky ⏱️
+            Tříminutovky ⏱️
           </h1>
           <p className="mt-2 text-lg text-[#6b7280]">
-            Jak rychle to dnes zvládneš?
+            Tři minuty na co nejvíc správně — jak rychle to dnes zvládneš?
           </p>
         </header>
 
@@ -491,7 +491,7 @@ export function PetiminutovkyGame() {
                   Násobilka ×
                 </span>
                 <p className="mt-1 text-sm text-[#6b7280]">
-                  Jen násobení — tři varianty doplňování.
+                  Oba činitele znáš — dopočítej jen výsledek (např. 6 × 7 = __).
                 </p>
                 <p className="mt-3 text-sm font-medium text-[#3b82f6]">
                   Rekord:{" "}
@@ -516,7 +516,8 @@ export function PetiminutovkyGame() {
                 </span>
                 <span className="mt-2 block text-xl font-bold">Dělení :</span>
                 <p className="mt-1 text-sm text-[#6b7280]">
-                  Jen dělení — vždy vyjde celé číslo.
+                  Dělenec i dělitel jsou dané — dopočítej výsledek, vždy celé
+                  číslo (např. 42 : 7 = __).
                 </p>
                 <p className="mt-3 text-sm font-medium text-[#3b82f6]">
                   Rekord:{" "}
@@ -570,7 +571,8 @@ export function PetiminutovkyGame() {
                   Vše dohromady
                 </span>
                 <p className="mt-1 text-sm text-[#6b7280]">
-                  Mix násobilky, dělení a počítání po desítkách.
+                  Mix: násobilka a dělení (plné zadání + výsledek), sčítání a
+                  odečítání po desítkách.
                 </p>
                 <p className="mt-3 text-sm font-medium text-[#3b82f6]">
                   Rekord:{" "}
@@ -651,7 +653,7 @@ export function PetiminutovkyGame() {
                 disabled={!contestTyp}
                 onClick={() => contestTyp && startGame(contestTyp)}
                 className="inline-flex min-h-[56px] min-w-[240px] items-center justify-center rounded-2xl bg-[#3b82f6] px-10 text-lg font-bold text-white shadow-md transition hover:bg-blue-600 focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 animate-bounce"
-                aria-label="Spustit pětiminutovky"
+                aria-label="Spustit tříminutovky"
               >
                 STARTOVAT 🚀
               </button>
