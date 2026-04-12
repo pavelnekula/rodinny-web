@@ -6,7 +6,7 @@ export type SubjectNav = {
 };
 
 export const tinuskaSubjects: readonly SubjectNav[] = [
-  { name: "Matika", emoji: "🔢", href: "/tinuska" },
+  { name: "Matika", emoji: "🔢", href: "/matematika" },
   { name: "Čeština", emoji: "📖", href: "/tinuska" },
   { name: "Angličtina", emoji: "🇬🇧", href: "/tinuska/anglictina" },
   { name: "Prvouka", emoji: "🌍", href: "/tinuska" },

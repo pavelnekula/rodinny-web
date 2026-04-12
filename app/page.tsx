@@ -32,6 +32,9 @@ export default function Home() {
             <Link href="/fyzika-teodor" className={navLinkClass}>
               Fyzika pro Teodora
             </Link>
+            <Link href="/matematika" className={navLinkClass}>
+              Matematika (Tinuška)
+            </Link>
           </nav>
         </div>
       </aside>
