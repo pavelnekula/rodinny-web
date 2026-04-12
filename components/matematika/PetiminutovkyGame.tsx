@@ -227,6 +227,11 @@ export function PetiminutovkyGame() {
   }, [contestTyp]);
 
   const ringRef = useRef(new PetiminutovkaRing20());
+  /** Absolutní konec kola — ref se nastaví synchronně při startu/pauze, aby timer nezávisel na batchi `endsAt`. */
+  const deadlineRef = useRef<number | null>(null);
+  const contestTypRef = useRef<PetiminutovkaTyp | null>(null);
+  contestTypRef.current = contestTyp;
+
   const [endsAt, setEndsAt] = useState<number | null>(null);
   const [pausedLeftMs, setPausedLeftMs] = useState<number | null>(null);
   const [paused, setPaused] = useState(false);
@@ -303,6 +308,7 @@ export function PetiminutovkyGame() {
   const startGame = (t: PetiminutovkaTyp) => {
     finishedRef.current = false;
     setContestTyp(t);
+    contestTypRef.current = t;
     ringRef.current = new PetiminutovkaRing20();
     setWrongLog([]);
     setCorrect(0);
@@ -310,6 +316,7 @@ export function PetiminutovkyGame() {
     setPaused(false);
     setPausedLeftMs(null);
     const end = Date.now() + TOTAL_MS;
+    deadlineRef.current = end;
     setEndsAt(end);
     setTimeLeftMs(TOTAL_MS);
     setPhase("play");
@@ -330,15 +337,20 @@ export function PetiminutovkyGame() {
   };
 
   useEffect(() => {
-    if (phase !== "play" || paused || endsAt === null) return;
-    const endTs = endsAt;
+    if (phase !== "play" || paused) return;
+    if (deadlineRef.current == null) return;
+
     const id = window.setInterval(() => {
-      const left = Math.max(0, endTs - Date.now());
+      const end = deadlineRef.current;
+      if (end == null) return;
+      const left = Math.max(0, end - Date.now());
       setTimeLeftMs(left);
       if (left <= 0 && !finishedRef.current) {
         finishedRef.current = true;
         window.clearInterval(id);
-        const typ = contestTyp;
+        deadlineRef.current = null;
+        setEndsAt(null);
+        const typ = contestTypRef.current;
         const prev = typ ? getPetiminutovkaLastCorrect(typ) : null;
         const c = correctRef.current;
         const w = wrongRef.current;
@@ -354,7 +366,7 @@ export function PetiminutovkyGame() {
       }
     }, 100);
     return () => window.clearInterval(id);
-  }, [phase, paused, endsAt, contestTyp, refreshStorage]);
+  }, [phase, paused, refreshStorage]);
 
   useEffect(() => {
     if (phase === "play" && !paused && !blocking) {
@@ -414,15 +426,19 @@ export function PetiminutovkyGame() {
   const togglePause = () => {
     if (phase !== "play") return;
     if (!paused) {
-      if (endsAt === null) return;
-      const left = Math.max(0, endsAt - Date.now());
+      const end = deadlineRef.current ?? endsAt;
+      if (end == null) return;
+      const left = Math.max(0, end - Date.now());
       setPausedLeftMs(left);
+      deadlineRef.current = null;
       setPaused(true);
       setEndsAt(null);
       setTimeLeftMs(left);
     } else {
       const base = pausedLeftMs ?? timeLeftMs;
-      setEndsAt(Date.now() + base);
+      const nextEnd = Date.now() + base;
+      deadlineRef.current = nextEnd;
+      setEndsAt(nextEnd);
       setPaused(false);
       setPausedLeftMs(null);
     }
@@ -443,8 +459,13 @@ export function PetiminutovkyGame() {
       ? buildRecommendations(wrongLog, correct, wrong, contestTyp)
       : [];
 
+  const shellClass =
+    phase === "play"
+      ? "flex min-h-0 w-full flex-1 flex-col px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 sm:px-4 md:px-6 md:pt-3 lg:px-8"
+      : "mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 md:max-w-4xl md:py-10";
+
   return (
-    <div className="relative min-h-full bg-[#ffffff] text-[#1a1a1a]">
+    <div className="relative flex min-h-[100dvh] flex-col bg-[#ffffff] text-[#1a1a1a] touch-manipulation">
       <Confetti show={showConfetti} />
       {flash === "ok" && (
         <div
@@ -459,25 +480,29 @@ export function PetiminutovkyGame() {
         />
       )}
 
-      <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
-        <MathNav />
+      <div className={shellClass}>
+        <div className={phase === "play" ? "mb-2 shrink-0 md:mb-3" : "mb-6"}>
+          <MathNav />
+        </div>
 
-        <header className="mb-8 text-center">
-          <h1 className="text-3xl font-semibold tracking-tight text-[#1a1a1a] sm:text-4xl">
-            Tříminutovky ⏱️
-          </h1>
-          <p className="mt-2 text-lg text-[#6b7280]">
-            Tři minuty na co nejvíc správně — jak rychle to dnes zvládneš?
-          </p>
-        </header>
+        {phase !== "play" && (
+          <header className="mb-8 text-center md:mb-10">
+            <h1 className="text-3xl font-semibold tracking-tight text-[#1a1a1a] sm:text-4xl md:text-5xl">
+              Tříminutovky ⏱️
+            </h1>
+            <p className="mt-2 text-lg text-[#6b7280] md:text-xl">
+              Tři minuty na co nejvíc správně — jak rychle to dnes zvládneš?
+            </p>
+          </header>
+        )}
 
         {phase === "intro" && (
-          <div className="space-y-8">
-            <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-8 md:space-y-10">
+            <div className="grid gap-4 md:gap-6 sm:grid-cols-2">
               <button
                 type="button"
                 onClick={() => setContestTyp("nasobilka")}
-                className={`rounded-2xl border-2 p-6 text-left shadow-sm transition focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2 ${
+                className={`rounded-2xl border-2 p-6 text-left shadow-sm transition focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2 md:min-h-[180px] md:p-8 ${
                   contestTyp === "nasobilka"
                     ? "border-amber-400 bg-amber-50 ring-2 ring-amber-300"
                     : "border-[#e5e7eb] bg-[#ffffff] hover:border-amber-200"
@@ -487,10 +512,10 @@ export function PetiminutovkyGame() {
                 <span className="text-2xl" aria-hidden>
                   🟡
                 </span>
-                <span className="mt-2 block text-xl font-bold">
+                <span className="mt-2 block text-xl font-bold md:text-2xl">
                   Násobilka ×
                 </span>
-                <p className="mt-1 text-sm text-[#6b7280]">
+                <p className="mt-1 text-sm text-[#6b7280] md:text-base">
                   Oba činitele znáš — dopočítej jen výsledek (např. 6 × 7 = __).
                 </p>
                 <p className="mt-3 text-sm font-medium text-[#3b82f6]">
@@ -504,7 +529,7 @@ export function PetiminutovkyGame() {
               <button
                 type="button"
                 onClick={() => setContestTyp("deleni")}
-                className={`rounded-2xl border-2 p-6 text-left shadow-sm transition focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2 ${
+                className={`rounded-2xl border-2 p-6 text-left shadow-sm transition focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2 md:min-h-[180px] md:p-8 ${
                   contestTyp === "deleni"
                     ? "border-orange-400 bg-orange-50 ring-2 ring-orange-300"
                     : "border-[#e5e7eb] bg-[#ffffff] hover:border-orange-200"
@@ -514,8 +539,10 @@ export function PetiminutovkyGame() {
                 <span className="text-2xl" aria-hidden>
                   🟠
                 </span>
-                <span className="mt-2 block text-xl font-bold">Dělení :</span>
-                <p className="mt-1 text-sm text-[#6b7280]">
+                <span className="mt-2 block text-xl font-bold md:text-2xl">
+                  Dělení :
+                </span>
+                <p className="mt-1 text-sm text-[#6b7280] md:text-base">
                   Dělenec i dělitel jsou dané — dopočítej výsledek, vždy celé
                   číslo (např. 42 : 7 = __).
                 </p>
@@ -530,7 +557,7 @@ export function PetiminutovkyGame() {
               <button
                 type="button"
                 onClick={() => setContestTyp("scitani_odcitani")}
-                className={`rounded-2xl border-2 p-6 text-left shadow-sm transition focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2 ${
+                className={`rounded-2xl border-2 p-6 text-left shadow-sm transition focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2 md:min-h-[180px] md:p-8 ${
                   contestTyp === "scitani_odcitani"
                     ? "border-sky-400 bg-sky-50 ring-2 ring-sky-300"
                     : "border-[#e5e7eb] bg-[#ffffff] hover:border-sky-200"
@@ -540,10 +567,10 @@ export function PetiminutovkyGame() {
                 <span className="text-2xl" aria-hidden>
                   🔵
                 </span>
-                <span className="mt-2 block text-xl font-bold">
+                <span className="mt-2 block text-xl font-bold md:text-2xl">
                   Sčítání a odečítání
                 </span>
-                <p className="mt-1 text-sm text-[#6b7280]">
+                <p className="mt-1 text-sm text-[#6b7280] md:text-base">
                   Po desítkách do 1000 — sčítání i odečítání.
                 </p>
                 <p className="mt-3 text-sm font-medium text-[#3b82f6]">
@@ -557,7 +584,7 @@ export function PetiminutovkyGame() {
               <button
                 type="button"
                 onClick={() => setContestTyp("all")}
-                className={`rounded-2xl border-2 p-6 text-left shadow-sm transition focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2 ${
+                className={`rounded-2xl border-2 p-6 text-left shadow-sm transition focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2 md:min-h-[180px] md:p-8 ${
                   contestTyp === "all"
                     ? "border-emerald-400 bg-emerald-50 ring-2 ring-emerald-300"
                     : "border-[#e5e7eb] bg-[#ffffff] hover:border-emerald-200"
@@ -567,10 +594,10 @@ export function PetiminutovkyGame() {
                 <span className="text-2xl" aria-hidden>
                   🟢
                 </span>
-                <span className="mt-2 block text-xl font-bold">
+                <span className="mt-2 block text-xl font-bold md:text-2xl">
                   Vše dohromady
                 </span>
-                <p className="mt-1 text-sm text-[#6b7280]">
+                <p className="mt-1 text-sm text-[#6b7280] md:text-base">
                   Mix: násobilka a dělení (plné zadání + výsledek), sčítání a
                   odečítání po desítkách.
                 </p>
@@ -652,7 +679,7 @@ export function PetiminutovkyGame() {
                 type="button"
                 disabled={!contestTyp}
                 onClick={() => contestTyp && startGame(contestTyp)}
-                className="inline-flex min-h-[56px] min-w-[240px] items-center justify-center rounded-2xl bg-[#3b82f6] px-10 text-lg font-bold text-white shadow-md transition hover:bg-blue-600 focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 animate-bounce"
+                className="inline-flex min-h-[56px] min-w-[240px] items-center justify-center rounded-2xl bg-[#3b82f6] px-10 text-lg font-bold text-white shadow-md transition hover:bg-blue-600 focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 animate-bounce md:min-h-[72px] md:min-w-[280px] md:text-xl md:px-14"
                 aria-label="Spustit tříminutovky"
               >
                 STARTOVAT 🚀
@@ -662,9 +689,9 @@ export function PetiminutovkyGame() {
         )}
 
         {phase === "play" && problem && (
-          <div className="space-y-6">
-            <div>
-              <div className="mb-2 h-3 w-full overflow-hidden rounded-full bg-[#e5e7eb]">
+          <div className="flex min-h-0 flex-1 flex-col gap-4 md:gap-6">
+            <div className="shrink-0">
+              <div className="mb-2 h-3 w-full overflow-hidden rounded-full bg-[#e5e7eb] md:h-5">
                 <div
                   className="h-full rounded-full transition-[width] duration-100 ease-linear"
                   style={{
@@ -675,7 +702,7 @@ export function PetiminutovkyGame() {
               </div>
               <div className="mt-2 flex items-center justify-between gap-4">
                 <span
-                  className={`text-3xl font-bold tabular-nums text-[#1a1a1a] sm:text-4xl ${
+                  className={`text-3xl font-bold tabular-nums text-[#1a1a1a] sm:text-5xl md:text-6xl lg:text-7xl ${
                     panic
                       ? "animate-pulse text-red-600"
                       : lowTime
@@ -692,37 +719,37 @@ export function PetiminutovkyGame() {
                 <button
                   type="button"
                   onClick={togglePause}
-                  className="rounded-xl border border-[#e5e7eb] bg-[#fafafa] px-4 py-2 text-sm font-medium text-[#1a1a1a] hover:bg-[#f3f4f6] focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6]"
+                  className="rounded-xl border border-[#e5e7eb] bg-[#fafafa] px-4 py-2 text-sm font-medium text-[#1a1a1a] hover:bg-[#f3f4f6] focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] md:px-6 md:py-3 md:text-lg"
                 >
                   {paused ? "▶ Pokračovat" : "⏸ Pauza"}
                 </button>
               </div>
             </div>
 
-            <div className="relative">
+            <div className="relative flex min-h-0 flex-1 flex-col">
               {paused && (
                 <div
                   className="absolute inset-0 z-10 flex items-center justify-center rounded-3xl bg-[#6b7280]/40 backdrop-blur-[1px]"
                   aria-live="polite"
                 >
-                  <p className="rounded-xl bg-white px-6 py-4 text-lg font-semibold shadow-lg">
+                  <p className="rounded-xl bg-white px-6 py-4 text-lg font-semibold shadow-lg md:px-10 md:py-6 md:text-2xl">
                     Pauza — odpočiň si 😊
                   </p>
                 </div>
               )}
 
-              <div className="rounded-3xl border border-[#e5e7eb] bg-[#ffffff] p-6 shadow-sm">
-                <p className="flex min-h-[3rem] items-center justify-center text-center text-4xl font-bold leading-snug text-[#1a1a1a] sm:text-5xl">
+              <div className="flex min-h-0 flex-1 flex-col rounded-3xl border border-[#e5e7eb] bg-[#ffffff] p-4 shadow-sm sm:p-6 md:p-8 lg:p-10">
+                <p className="flex min-h-[3.5rem] flex-1 items-center justify-center text-center text-4xl font-bold leading-tight text-[#1a1a1a] sm:min-h-[4rem] sm:text-5xl md:min-h-[5rem] md:text-6xl lg:min-h-0 lg:text-7xl xl:text-8xl">
                   {problem.display}
                 </p>
 
                 {wrongNote && (
-                  <p className="mt-4 text-center text-lg font-semibold text-rose-600">
+                  <p className="mt-3 text-center text-lg font-semibold text-rose-600 md:mt-4 md:text-2xl">
                     {wrongNote}
                   </p>
                 )}
 
-                <div className="mt-6 flex flex-col items-center gap-4">
+                <div className="mt-4 flex flex-col items-stretch gap-4 md:mt-6 md:gap-6">
                   <input
                     ref={inputRef}
                     type="text"
@@ -737,17 +764,17 @@ export function PetiminutovkyGame() {
                     onKeyDown={(e) => {
                       if (e.key === "Enter") submit();
                     }}
-                    className="w-full max-w-md rounded-2xl border-2 border-[#3b82f6] px-4 py-4 text-center text-4xl font-bold text-[#1a1a1a] focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] disabled:bg-[#f3f4f6]"
+                    className="w-full max-w-none rounded-2xl border-2 border-[#3b82f6] px-3 py-4 text-center text-4xl font-bold text-[#1a1a1a] focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] disabled:bg-[#f3f4f6] sm:py-5 sm:text-5xl md:py-6 md:text-6xl lg:mx-auto lg:max-w-4xl lg:text-7xl"
                   />
 
-                  <div className="grid w-full max-w-md grid-cols-3 gap-2 sm:grid-cols-6">
+                  <div className="grid w-full max-w-none grid-cols-3 gap-2 sm:grid-cols-6 sm:gap-3 md:gap-4 lg:mx-auto lg:max-w-5xl">
                     {["1", "2", "3", "4", "5", "6", "7", "8", "9", "⌫", "0", "OK"].map(
                       (k) => (
                         <button
                           key={k}
                           type="button"
                           disabled={paused || blocking}
-                          className="min-h-[48px] min-w-[48px] rounded-xl border border-[#e5e7eb] bg-[#fafafa] text-lg font-semibold text-[#1a1a1a] hover:bg-[#f3f4f6] focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] disabled:opacity-50"
+                          className="min-h-[52px] min-w-0 rounded-xl border border-[#e5e7eb] bg-[#fafafa] text-lg font-semibold text-[#1a1a1a] hover:bg-[#f3f4f6] focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] disabled:opacity-50 sm:min-h-[56px] sm:text-xl md:min-h-[72px] md:text-2xl lg:min-h-[80px] lg:text-3xl"
                           aria-label={
                             k === "⌫"
                               ? "Smazat číslo"
@@ -775,7 +802,7 @@ export function PetiminutovkyGame() {
                 </div>
 
                 <div
-                  className={`mt-6 flex flex-wrap items-center justify-center gap-4 text-lg ${
+                  className={`mt-4 flex flex-wrap items-center justify-center gap-4 text-lg sm:mt-6 sm:text-xl md:gap-6 md:text-2xl ${
                     scoreBump ? "animate-bounce" : ""
                   }`}
                 >
@@ -786,7 +813,7 @@ export function PetiminutovkyGame() {
                 </div>
 
                 {motivation && (
-                  <p className="mt-4 text-center text-lg font-semibold text-[#3b82f6]">
+                  <p className="mt-3 text-center text-lg font-semibold text-[#3b82f6] md:text-xl">
                     {motivation}
                   </p>
                 )}
@@ -914,6 +941,8 @@ export function PetiminutovkyGame() {
               <button
                 type="button"
                 onClick={() => {
+                  deadlineRef.current = null;
+                  finishedRef.current = false;
                   setPhase("intro");
                   setContestTyp(null);
                   setProblem(null);
