@@ -57,7 +57,7 @@ export function PetiminutovkyStats() {
 
         <header className="mb-8">
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-            📊 Statistiky — tříminutovky
+            📊 Statistiky — pětiminutovky
           </h1>
           <p className="mt-2 text-[#6b7280]">
             Přehled uložený v tomhle prohlížeči (LocalStorage).
@@ -112,7 +112,7 @@ export function PetiminutovkyStats() {
           {runs.length === 0 ? (
             <p className="rounded-2xl border border-dashed border-[#e5e7eb] p-8 text-center text-[#6b7280]">
               Zatím žádné odehrané soutěže — zkus to na hlavní stránce
-              tříminutovek.
+              pětiminutovek.
             </p>
           ) : (
             <div
@@ -149,7 +149,7 @@ export function PetiminutovkyStats() {
             href="/matematika/petiminutovky"
             className="inline-flex rounded-2xl bg-[#3b82f6] px-6 py-3 font-semibold text-white shadow-sm hover:bg-blue-600 focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2"
           >
-            ← Zpět k tříminutovkám
+            ← Zpět k pětiminutovkám
           </Link>
           <Link
             href="/matematika"

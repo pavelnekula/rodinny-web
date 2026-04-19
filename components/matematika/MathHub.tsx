@@ -21,6 +21,8 @@ type CardDef = {
   desc: string;
   emoji: string;
   stars: number;
+  /** Skryje hvězdičky „nejlepší výkon“ (např. u cvičení bez tlaku na skóre). */
+  hideStars?: boolean;
 };
 
 export function MathHub() {
@@ -84,11 +86,19 @@ export function MathHub() {
                   </p>
                 </div>
               </div>
-              <div className="mt-4 flex items-center justify-between border-t border-app-divider pt-3">
-                <span className="text-xs font-medium uppercase tracking-wide text-app-subtle">
-                  Nejlepší výkon
-                </span>
-                <StarRow count={c.stars} max={3} />
+              <div className="mt-4 border-t border-app-divider pt-3">
+                {c.hideStars ? (
+                  <p className="text-xs text-app-muted">
+                    Klidný režim — bez skóre na téhle kartě.
+                  </p>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium uppercase tracking-wide text-app-subtle">
+                      Nejlepší výkon
+                    </span>
+                    <StarRow count={c.stars} max={3} />
+                  </div>
+                )}
               </div>
             </Link>
           </li>
@@ -107,6 +117,13 @@ function buildCards(
   s6: number,
 ): CardDef[] {
   return [
+    {
+      href: "/matematika/delitelnost",
+      title: "Dělitelnost pro Teodora",
+      desc: "Dělitelnost – 15 kapitol: násobky, znaky, prvočísla, slovní úlohy.",
+      emoji: "🔢",
+      stars: 0,
+    },
     {
       href: "/matematika/pocitani",
       title: "Doplň číslo",
@@ -144,10 +161,11 @@ function buildCards(
     },
     {
       href: "/matematika/petiminutovky",
-      title: "Tříminutovky",
-      desc: "Tři minuty drilování — násobilka, dělení, po desítkách nebo vše najednou.",
+      title: "Pětiminutovky",
+      desc: "Pět minut počítání bez času a skóre na obrazovce — násobilka, dělení, mix.",
       emoji: "⏱️",
       stars: s6,
+      hideStars: true,
     },
   ];
 }

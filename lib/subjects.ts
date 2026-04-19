@@ -8,7 +8,7 @@ export type SubjectNav = {
   emoji: string;
   /** Výchozí cíl (např. přehled), když nejsou sublinky */
   href: string;
-  /** Dílčí odkazy pod předmětem (např. Matika → přehled + testík) */
+  /** Dílčí odkazy pod předmětem (např. Matika → přehled + pětiminutovky) */
   sublinks?: readonly SubjectSublink[];
 };
 
@@ -19,7 +19,7 @@ export const tinuskaSubjects: readonly SubjectNav[] = [
     href: "/matematika",
     sublinks: [
       { name: "Přehled", href: "/matematika" },
-      { name: "Testík", href: "/matematika/petiminutovky" },
+      { name: "Pětiminutovky", href: "/matematika/petiminutovky" },
     ],
   },
   { name: "Čeština", emoji: "📖", href: "/tinuska" },
