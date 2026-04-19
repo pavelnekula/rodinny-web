@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { tinuskaSubjects } from "@/lib/subjects";
 
 export const dynamic = "force-dynamic";
 
@@ -12,18 +11,12 @@ export const metadata: Metadata = {
 const navLinkClass =
   "w-fit text-lg font-medium text-[#1a1a1a] underline-offset-4 transition hover:text-[#3b82f6] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2";
 
-const subNavLinkClass =
-  "w-fit text-base font-medium text-[#1a1a1a] underline-offset-4 transition hover:text-[#3b82f6] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2";
-
 export default function Home() {
   const todayLabel = new Date().toLocaleDateString("cs-CZ", {
     day: "numeric",
     month: "long",
     year: "numeric",
   });
-
-  const matikaSublinks = tinuskaSubjects.find((s) => s.name === "Matika")
-    ?.sublinks;
 
   return (
     <div className="flex min-h-screen flex-col bg-[#ffffff] text-[#1a1a1a] md:flex-row">
@@ -33,30 +26,9 @@ export default function Home() {
             className="flex flex-col gap-6"
             aria-label="Hlavní stránky webu"
           >
-            <div className="flex flex-col gap-3">
-              <Link href="/tinuska" className={navLinkClass}>
-                Tinuška
-              </Link>
-              {matikaSublinks && matikaSublinks.length > 0 ? (
-                <div
-                  className="ml-0 flex flex-col gap-2 border-l-2 border-[#e5e7eb] pl-4 md:ml-1"
-                  aria-label="Matematika pro Tinušku"
-                >
-                  <p className="text-xs font-semibold uppercase tracking-wide text-[#6b7280]">
-                    Matematika
-                  </p>
-                  <ul className="flex flex-col gap-2">
-                    {matikaSublinks.map((item) => (
-                      <li key={item.href}>
-                        <Link href={item.href} className={subNavLinkClass}>
-                          {item.name}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-            </div>
+            <Link href="/tinuska" className={navLinkClass}>
+              Tinuška
+            </Link>
             <Link href="/teo" className={navLinkClass}>
               Teo
             </Link>
