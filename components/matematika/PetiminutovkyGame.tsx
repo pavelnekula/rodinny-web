@@ -15,579 +15,639 @@ import {
   generateMixed,
 } from "@/lib/mathGenerators";
 import {
-  playFanfare,
-  playPetiminutovkaCorrect,
-  playPetiminutovkaWrong,
-} from "@/lib/mathSound";
-import { type PetiminutovkaTyp, savePetiminutovkaRun } from "@/lib/mathStorage";
+  type PetiminutovkaHistoryChyba,
+  type PetiminutovkaTyp,
+  finalizePetiminutovkaRound,
+  getPetiminutovkaRekord,
+} from "@/lib/mathStorage";
 import { MathNav } from "./MathNav";
 
-const TOTAL_MS = 5 * 60 * 1000;
+const COUNT = 20;
+const LEGACY_CAS_SENTINEL = 999_999;
 
-type Phase = "intro" | "play" | "done";
+type Phase = "intro" | "play";
 
-type WrongEntry = {
-  ex: MathExample;
-  userAnswer: number;
+type TypeCardDef = {
+  typ: PetiminutovkaTyp;
+  emoji: string;
+  title: string;
+  shortTitle: string;
+  desc: string;
+  accent: string;
 };
 
-const MOTIVATION = [
-  "Skvěle! Jedeš jako stroj! 🔥",
-  "Wow, to je rychlost! ⚡",
-  "Tinušku nikdo nezastaví! 🏆",
-  "Úžasné! Pokračuj! 💪",
-  "Matematická mistryně! 🌟",
+const TYPE_CARDS: TypeCardDef[] = [
+  {
+    typ: "nasobilka",
+    emoji: "🟡",
+    title: "Násobilka ×",
+    shortTitle: "Násobilka ×",
+    desc: "Dopočítej výsledek.",
+    accent: "#ffcc00",
+  },
+  {
+    typ: "deleni",
+    emoji: "🟠",
+    title: "Dělení :",
+    shortTitle: "Dělení :",
+    desc: "Dopočítej výsledek.",
+    accent: "#ff9f0a",
+  },
+  {
+    typ: "scitani_odcitani_do100",
+    emoji: "🔵",
+    title: "Sčítání a odečítání do 100",
+    shortTitle: "± do 100",
+    desc: "Součty a rozdíly do 100.",
+    accent: "#0a84ff",
+  },
+  {
+    typ: "chybejici_cislo",
+    emoji: "🟣",
+    title: "Chybějící číslo",
+    shortTitle: "Chybějící číslo",
+    desc: "Doplň chybějící člen.",
+    accent: "#bf5af2",
+  },
+  {
+    typ: "scitani_odcitani",
+    emoji: "🩶",
+    title: "Sčítání a odečítání po 10 do 1000",
+    shortTitle: "± po 10 do 1000",
+    desc: "Po desítkách do 1000.",
+    accent: "#98989d",
+  },
+  {
+    typ: "all",
+    emoji: "🟢",
+    title: "Vše dohromady",
+    shortTitle: "Mix",
+    desc: "Náhodný mix všech typů.",
+    accent: "#30d158",
+  },
 ];
+
+function typToMixed(t: PetiminutovkaTyp): PetiminutovkaMixedTyp {
+  if (t === "scitani_odcitani") return "scitani_odcitani";
+  if (t === "scitani_odcitani_do100") return "scitani_odcitani_do100";
+  if (t === "chybejici_cislo") return "chybejici_cislo";
+  if (t === "nasobilka") return "nasobilka";
+  if (t === "deleni") return "deleni";
+  return "all";
+}
+
+function generateUniqueSet(mt: PetiminutovkaMixedTyp): MathExample[] {
+  const ring = new PetiminutovkaRing20();
+  const out: MathExample[] = [];
+  for (let i = 0; i < COUNT; i++) {
+    out.push(generateMixed(mt, ring));
+  }
+  return out;
+}
+
+function formatMmSs(totalSec: number): string {
+  const s = Math.max(0, Math.floor(totalSec));
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return `${m}:${String(r).padStart(2, "0")}`;
+}
+
+function splitDisplay(display: string): { before: string; after: string } {
+  const parts = display.split("___");
+  if (parts.length !== 2) {
+    return { before: display, after: "" };
+  }
+  return { before: parts[0]!, after: parts[1]! };
+}
+
+function newRunId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `run-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function scoreMessage(spravne: number): string {
+  if (spravne === 20) return "🏆 Perfektní výsledek!";
+  if (spravne >= 15) return "🌟 Výborně!";
+  if (spravne >= 10) return "👍 Dobrá práce!";
+  return "💪 Příště to půjde!";
+}
+
+function rekordLine(prev: { cas: number; spravne: number } | null): string {
+  if (!prev) return "Zatím žádný uložený rekord.";
+  if (prev.cas >= LEGACY_CAS_SENTINEL) {
+    return `Nejlepší dosud: ${prev.spravne}/${COUNT} správně`;
+  }
+  return `Rekord: ${formatMmSs(prev.cas)} · ${prev.spravne}/${COUNT} správně`;
+}
+
+function comparisonLine(
+  spravne: number,
+  cas: number,
+  prev: { cas: number; spravne: number } | null,
+): string {
+  if (!prev || prev.cas >= LEGACY_CAS_SENTINEL) {
+    if (spravne === 20) return "Paráda — plný počet správně!";
+    return "Zkus to znovu — čas se počítá u každého kola.";
+  }
+  if (spravne === 20 && prev.spravne === 20) {
+    if (cas < prev.cas) {
+      const d = prev.cas - cas;
+      return `Nejlepší čas byl ${formatMmSs(prev.cas)} — překonáváš ho o ${d}s!`;
+    }
+    if (cas > prev.cas) {
+      return `Tvůj rekord je ${formatMmSs(prev.cas)} — dnes ${formatMmSs(cas)}.`;
+    }
+    return `Stejně rychle jako rekord — ${formatMmSs(prev.cas)}.`;
+  }
+  if (spravne === 20 && prev.spravne < 20) {
+    return `První kolo bez chyby — ${formatMmSs(cas)}.`;
+  }
+  if (spravne < 20 && prev.spravne === 20) {
+    return `Rekord zůstává ${formatMmSs(prev.cas)} (20/20) — dnes ${spravne}/${COUNT} za ${formatMmSs(cas)}.`;
+  }
+  if (
+    spravne > prev.spravne ||
+    (spravne === prev.spravne && cas < prev.cas)
+  ) {
+    return `Lepší než uložený rekord (${prev.spravne}/${COUNT}, ${formatMmSs(prev.cas)}).`;
+  }
+  return `Uložený rekord: ${prev.spravne}/${COUNT} za ${formatMmSs(prev.cas)}.`;
+}
 
 export function PetiminutovkyGame() {
   const [phase, setPhase] = useState<Phase>("intro");
-  const [contestTyp, setContestTyp] = useState<PetiminutovkaTyp | null>(null);
+  const [selectedTyp, setSelectedTyp] = useState<PetiminutovkaTyp | null>(null);
+  const [playTyp, setPlayTyp] = useState<PetiminutovkaTyp | null>(null);
+  const [problems, setProblems] = useState<MathExample[]>([]);
+  const [answers, setAnswers] = useState<string[]>(() =>
+    Array.from({ length: COUNT }, () => ""),
+  );
+  const [elapsedSec, setElapsedSec] = useState(0);
+  const [graded, setGraded] = useState(false);
+  const [spravneCount, setSpravneCount] = useState(0);
+  const [spatneCount, setSpatneCount] = useState(0);
+  const [resultsPerIndex, setResultsPerIndex] = useState<
+    ("ok" | "bad" | null)[]
+  >(() => Array.from({ length: COUNT }, () => null));
+  const [rekordSnapshot, setRekordSnapshot] = useState<{
+    cas: number;
+    spravne: number;
+  } | null>(null);
+  const [introRekordy, setIntroRekordy] = useState<
+    Partial<Record<PetiminutovkaTyp, { cas: number; spravne: number }>>
+  >({});
+
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const elapsedRef = useRef(0);
+  const timerActiveRef = useRef(false);
+
   const mixedTyp = useMemo((): PetiminutovkaMixedTyp | null => {
-    if (!contestTyp) return null;
-    if (contestTyp === "scitani_odcitani") return "scitani_odcitani";
-    if (contestTyp === "scitani_odcitani_do100")
-      return "scitani_odcitani_do100";
-    if (contestTyp === "chybejici_cislo") return "chybejici_cislo";
-    if (contestTyp === "nasobilka") return "nasobilka";
-    if (contestTyp === "deleni") return "deleni";
-    return "all";
-  }, [contestTyp]);
+    if (!playTyp) return null;
+    return typToMixed(playTyp);
+  }, [playTyp]);
 
-  const ringRef = useRef(new PetiminutovkaRing20());
-  /** Absolutní konec kola — ref se nastaví synchronně při startu/pauze, aby timer nezávisel na batchi `endsAt`. */
-  const deadlineRef = useRef<number | null>(null);
-  const contestTypRef = useRef<PetiminutovkaTyp | null>(null);
-  contestTypRef.current = contestTyp;
-
-  const [endsAt, setEndsAt] = useState<number | null>(null);
-  const [pausedLeftMs, setPausedLeftMs] = useState<number | null>(null);
-  const [paused, setPaused] = useState(false);
-
-  const [timeLeftMs, setTimeLeftMs] = useState(TOTAL_MS);
-  const [problem, setProblem] = useState<MathExample | null>(null);
-  const [input, setInput] = useState("");
-  const [correct, setCorrect] = useState(0);
-  const [wrong, setWrong] = useState(0);
-  const [flash, setFlash] = useState<"ok" | "bad" | null>(null);
-  const [blocking, setBlocking] = useState(false);
-  const [motivation, setMotivation] = useState<string | null>(null);
-  const [wrongLog, setWrongLog] = useState<WrongEntry[]>([]);
-
-  const inputRef = useRef<HTMLInputElement>(null);
-  const finishedRef = useRef(false);
-  const correctRef = useRef(0);
-  const wrongRef = useRef(0);
-  correctRef.current = correct;
-  wrongRef.current = wrong;
-
-  const nextProblem = useCallback(() => {
-    if (!mixedTyp) return;
-    const ex = generateMixed(mixedTyp, ringRef.current);
-    setProblem(ex);
-    setInput("");
-  }, [mixedTyp]);
-
-  const startGame = (t: PetiminutovkaTyp) => {
-    finishedRef.current = false;
-    setContestTyp(t);
-    contestTypRef.current = t;
-    ringRef.current = new PetiminutovkaRing20();
-    setWrongLog([]);
-    setCorrect(0);
-    setWrong(0);
-    setPaused(false);
-    setPausedLeftMs(null);
-    const end = Date.now() + TOTAL_MS;
-    deadlineRef.current = end;
-    setEndsAt(end);
-    setTimeLeftMs(TOTAL_MS);
-    setPhase("play");
-    setFlash(null);
-    setMotivation(null);
-    const mt: PetiminutovkaMixedTyp =
-      t === "scitani_odcitani"
-        ? "scitani_odcitani"
-        : t === "scitani_odcitani_do100"
-          ? "scitani_odcitani_do100"
-          : t === "chybejici_cislo"
-            ? "chybejici_cislo"
-            : t === "nasobilka"
-              ? "nasobilka"
-              : t === "deleni"
-                ? "deleni"
-                : "all";
-    const ex = generateMixed(mt, ringRef.current);
-    setProblem(ex);
-    setInput("");
-  };
+  const accentForPlay = useMemo(() => {
+    const c = TYPE_CARDS.find((x) => x.typ === playTyp);
+    return c?.accent ?? "#0a84ff";
+  }, [playTyp]);
 
   useEffect(() => {
-    if (phase !== "play" || paused) return;
-    if (deadlineRef.current == null) return;
+    const next: Partial<
+      Record<PetiminutovkaTyp, { cas: number; spravne: number }>
+    > = {};
+    for (const row of TYPE_CARDS) {
+      next[row.typ] = getPetiminutovkaRekord(row.typ) ?? undefined;
+    }
+    setIntroRekordy(next);
+  }, [phase]);
 
+  useEffect(() => {
+    if (phase !== "play" || graded || !mixedTyp) return;
+    timerActiveRef.current = true;
+    elapsedRef.current = 0;
+    setElapsedSec(0);
     const id = window.setInterval(() => {
-      const end = deadlineRef.current;
-      if (end == null) return;
-      const left = Math.max(0, end - Date.now());
-      setTimeLeftMs(left);
-      if (left <= 0 && !finishedRef.current) {
-        finishedRef.current = true;
-        window.clearInterval(id);
-        deadlineRef.current = null;
-        setEndsAt(null);
-        const typ = contestTypRef.current;
-        const c = correctRef.current;
-        const w = wrongRef.current;
-        const total = c + w;
-        if (typ && total > 0) {
-          savePetiminutovkaRun(typ, c, w);
-        }
-        setPhase("done");
-        playFanfare();
-      }
-    }, 100);
-    return () => window.clearInterval(id);
-  }, [phase, paused]);
+      if (!timerActiveRef.current) return;
+      elapsedRef.current += 1;
+      setElapsedSec(elapsedRef.current);
+    }, 1000);
+    return () => {
+      window.clearInterval(id);
+      timerActiveRef.current = false;
+    };
+  }, [phase, graded, mixedTyp, problems]);
 
-  useEffect(() => {
-    if (phase === "play" && !paused && !blocking) {
-      inputRef.current?.focus();
-    }
-  }, [phase, paused, blocking, problem]);
+  const filledCount = useMemo(
+    () => answers.filter((a) => a.trim() !== "").length,
+    [answers],
+  );
 
-  const submit = useCallback(() => {
-    if (phase !== "play" || paused || blocking || !problem || !mixedTyp) return;
-    const raw = input.trim();
-    if (raw === "") return;
-    const n = Number(raw);
-    if (!Number.isFinite(n)) return;
-    const ok = n === problem.answer;
-    if (ok) {
-      playPetiminutovkaCorrect();
-      setFlash("ok");
-      const nc = correct + 1;
-      setCorrect(nc);
-      if (nc > 0 && nc % 10 === 0) {
-        setMotivation(
-          MOTIVATION[Math.floor(Math.random() * MOTIVATION.length)] ?? null,
-        );
-        window.setTimeout(() => setMotivation(null), 2800);
-      }
-      window.setTimeout(() => {
-        setFlash(null);
-        nextProblem();
-      }, 120);
-    } else {
-      playPetiminutovkaWrong();
-      setFlash("bad");
-      setWrong((w) => w + 1);
-      setWrongLog((log) => [...log, { ex: problem, userAnswer: n }]);
-      setBlocking(true);
-      window.setTimeout(() => {
-        setFlash(null);
-        setBlocking(false);
-        nextProblem();
-      }, 1500);
-    }
-  }, [
-    phase,
-    paused,
-    blocking,
-    problem,
-    mixedTyp,
-    input,
-    correct,
-    nextProblem,
-  ]);
+  const startRound = (t: PetiminutovkaTyp) => {
+    const mt = typToMixed(t);
+    const set = generateUniqueSet(mt);
+    setPlayTyp(t);
+    setProblems(set);
+    setAnswers(Array.from({ length: COUNT }, () => ""));
+    setResultsPerIndex(Array.from({ length: COUNT }, () => null));
+    setGraded(false);
+    setSpravneCount(0);
+    setSpatneCount(0);
+    setElapsedSec(0);
+    elapsedRef.current = 0;
+    setPhase("play");
+    queueMicrotask(() => {
+      inputRefs.current[0]?.focus();
+    });
+  };
 
-  const totalAttempts = correct + wrong;
-  const accPct =
-    totalAttempts > 0 ? Math.round((correct / totalAttempts) * 1000) / 10 : 0;
-
-  const togglePause = () => {
-    if (phase !== "play") return;
-    if (!paused) {
-      const end = deadlineRef.current ?? endsAt;
-      if (end == null) return;
-      const left = Math.max(0, end - Date.now());
-      setPausedLeftMs(left);
-      deadlineRef.current = null;
-      setPaused(true);
-      setEndsAt(null);
-      setTimeLeftMs(left);
-    } else {
-      const base = pausedLeftMs ?? timeLeftMs;
-      const nextEnd = Date.now() + base;
-      deadlineRef.current = nextEnd;
-      setEndsAt(nextEnd);
-      setPaused(false);
-      setPausedLeftMs(null);
+  const focusAt = (i: number) => {
+    const el = inputRefs.current[i];
+    if (el) {
+      el.focus();
+      el.select();
     }
   };
 
-  const shellClass =
-    phase === "play"
-      ? "flex min-h-0 w-full flex-1 flex-col px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 sm:px-4 md:px-6 md:pt-3 lg:px-8"
-      : "mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 md:max-w-4xl md:py-10";
+  const goNextField = (fromIndex: number) => {
+    const next = (fromIndex + 1) % COUNT;
+    focusAt(next);
+  };
+
+  const onAnswerKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    index: number,
+  ) => {
+    if (graded) return;
+    if (e.key === "Enter" || e.key === "Tab") {
+      e.preventDefault();
+      goNextField(index);
+    }
+  };
+
+  const setAnswerAt = (index: number, raw: string) => {
+    const digits = raw.replace(/\D/g, "");
+    setAnswers((prev) => {
+      const next = [...prev];
+      next[index] = digits;
+      return next;
+    });
+  };
+
+  const evaluate = useCallback(() => {
+    if (!playTyp || graded || problems.length !== COUNT) return;
+    timerActiveRef.current = false;
+    const finalSec = elapsedRef.current;
+    const prev = getPetiminutovkaRekord(playTyp);
+    setRekordSnapshot(prev);
+
+    const per: ("ok" | "bad")[] = [];
+    const chyby: PetiminutovkaHistoryChyba[] = [];
+    let spravne = 0;
+    let spatne = 0;
+
+    for (let i = 0; i < COUNT; i++) {
+      const ex = problems[i]!;
+      const raw = answers[i]?.trim() ?? "";
+      if (raw === "") {
+        per[i] = "bad";
+        spatne += 1;
+        chyby.push({
+          priklad: ex.display,
+          odpoved: null,
+          spravne: ex.answer,
+          category: ex.category,
+          missingPosition: ex.missingPosition,
+        });
+        continue;
+      }
+      const n = Number(raw);
+      if (!Number.isFinite(n) || n !== ex.answer) {
+        per[i] = "bad";
+        spatne += 1;
+        chyby.push({
+          priklad: ex.display,
+          odpoved: Number.isFinite(n) ? n : null,
+          spravne: ex.answer,
+          category: ex.category,
+          missingPosition: ex.missingPosition,
+        });
+      } else {
+        per[i] = "ok";
+        spravne += 1;
+      }
+    }
+
+    setResultsPerIndex(per);
+    setSpravneCount(spravne);
+    setSpatneCount(spatne);
+    setGraded(true);
+
+    finalizePetiminutovkaRound({
+      id: newRunId(),
+      datum: new Date().toISOString(),
+      typ: playTyp,
+      cas_sekundy: finalSec,
+      celkem: 20,
+      spravne,
+      spatne,
+      chyby,
+    });
+  }, [playTyp, graded, problems, answers]);
+
+  const newExamplesSameTyp = () => {
+    if (!playTyp) return;
+    const mt = typToMixed(playTyp);
+    setProblems(generateUniqueSet(mt));
+    setAnswers(Array.from({ length: COUNT }, () => ""));
+    setResultsPerIndex(Array.from({ length: COUNT }, () => null));
+    setGraded(false);
+    setSpravneCount(0);
+    setSpatneCount(0);
+    setElapsedSec(0);
+    elapsedRef.current = 0;
+    queueMicrotask(() => inputRefs.current[0]?.focus());
+  };
+
+  const backToIntro = () => {
+    timerActiveRef.current = false;
+    setPhase("intro");
+    setPlayTyp(null);
+    setProblems([]);
+    setSelectedTyp(null);
+    setGraded(false);
+  };
+
+  const topOffset =
+    "calc(3.5rem + env(safe-area-inset-top, 0px) + 0.25rem)" as const;
 
   return (
-    <div className="relative flex min-h-[100dvh] flex-col bg-[#ffffff] text-[#1a1a1a] touch-manipulation">
-      {flash === "ok" && (
-        <div
-          className="pointer-events-none fixed inset-0 z-[80] animate-pulse bg-emerald-400/35"
-          aria-hidden
-        />
-      )}
-      {flash === "bad" && (
-        <div
-          className="pointer-events-none fixed inset-0 z-[80] bg-rose-500/30"
-          aria-hidden
-        />
-      )}
-
-      <div className={shellClass}>
-        <div className={phase === "play" ? "mb-2 shrink-0 md:mb-3" : "mb-6"}>
+    <div className="relative flex min-h-[100dvh] flex-col bg-app-bg text-app-fg">
+      <div className="mx-auto w-full max-w-[800px] flex-1 px-3 pb-40 pt-2 sm:px-4 md:px-6">
+        <div className="mb-4">
           <MathNav />
         </div>
 
-        {phase !== "play" && (
-          <header className="mb-8 text-center md:mb-10">
-            <h1 className="text-3xl font-semibold tracking-tight text-[#1a1a1a] sm:text-4xl md:text-5xl">
-              Pětiminutovky ⏱️
-            </h1>
-            <p className="mt-2 text-lg text-[#6b7280] md:text-xl">
-              Pět minut bez času na obrazovce — po skončení kola uvidíš výsledky
-              a příklady, u kterých to nevyšlo.
-            </p>
-          </header>
-        )}
-
         {phase === "intro" && (
-          <div className="space-y-8 md:space-y-10">
-            <div className="grid gap-4 md:gap-6 sm:grid-cols-2 xl:grid-cols-3">
-              <button
-                type="button"
-                onClick={() => setContestTyp("nasobilka")}
-                className={`rounded-2xl border-2 p-6 text-left shadow-sm transition focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2 md:min-h-[180px] md:p-8 ${
-                  contestTyp === "nasobilka"
-                    ? "border-amber-400 bg-amber-50 ring-2 ring-amber-300"
-                    : "border-[#e5e7eb] bg-[#ffffff] hover:border-amber-200"
-                }`}
-                aria-pressed={contestTyp === "nasobilka"}
-              >
-                <span className="text-2xl" aria-hidden>
-                  🟡
-                </span>
-                <span className="mt-2 block text-xl font-bold md:text-2xl">
-                  Násobilka ×
-                </span>
-                <p className="mt-1 text-sm text-[#6b7280] md:text-base">
-                  Oba činitele znáš — dopočítej jen výsledek (např. 6 × 7 = __).
-                </p>
-              </button>
+          <>
+            <header className="mb-8 text-center">
+              <h1 className="app-title-gradient text-3xl font-bold tracking-tight sm:text-4xl">
+                Pětiminutovky
+              </h1>
+              <p className="mt-2 text-lg text-app-muted">
+                20 příkladů, vlastním tempem
+              </p>
+            </header>
 
-              <button
-                type="button"
-                onClick={() => setContestTyp("deleni")}
-                className={`rounded-2xl border-2 p-6 text-left shadow-sm transition focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2 md:min-h-[180px] md:p-8 ${
-                  contestTyp === "deleni"
-                    ? "border-orange-400 bg-orange-50 ring-2 ring-orange-300"
-                    : "border-[#e5e7eb] bg-[#ffffff] hover:border-orange-200"
-                }`}
-                aria-pressed={contestTyp === "deleni"}
-              >
-                <span className="text-2xl" aria-hidden>
-                  🟠
-                </span>
-                <span className="mt-2 block text-xl font-bold md:text-2xl">
-                  Dělení :
-                </span>
-                <p className="mt-1 text-sm text-[#6b7280] md:text-base">
-                  Dělenec i dělitel jsou dané — dopočítej výsledek, vždy celé
-                  číslo (např. 42 : 7 = __).
-                </p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setContestTyp("scitani_odcitani")}
-                className={`rounded-2xl border-2 p-6 text-left shadow-sm transition focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2 md:min-h-[180px] md:p-8 ${
-                  contestTyp === "scitani_odcitani"
-                    ? "border-sky-400 bg-sky-50 ring-2 ring-sky-300"
-                    : "border-[#e5e7eb] bg-[#ffffff] hover:border-sky-200"
-                }`}
-                aria-pressed={contestTyp === "scitani_odcitani"}
-              >
-                <span className="text-2xl" aria-hidden>
-                  🔵
-                </span>
-                <span className="mt-2 block text-xl font-bold md:text-2xl">
-                  Sčítání a odečítání
-                </span>
-                <p className="mt-1 text-sm text-[#6b7280] md:text-base">
-                  Po desítkách do 1000 — sčítání i odečítání.
-                </p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setContestTyp("scitani_odcitani_do100")}
-                className={`rounded-2xl border-2 p-6 text-left shadow-sm transition focus-visible:outline focus-visible:ring-2 focus-visible:ring-offset-2 md:min-h-[180px] md:p-8 ${
-                  contestTyp === "scitani_odcitani_do100"
-                    ? "border-[#0A84FF] bg-sky-50 ring-2 ring-[#0A84FF]"
-                    : "border-[#e5e7eb] bg-[#ffffff] hover:border-sky-200"
-                }`}
-                aria-pressed={contestTyp === "scitani_odcitani_do100"}
-              >
-                <span className="text-2xl" aria-hidden>
-                  🔵
-                </span>
-                <span className="mt-2 block text-xl font-bold md:text-2xl">
-                  Sčítání a odečítání do 100
-                </span>
-                <p className="mt-1 text-sm text-[#6b7280] md:text-base">
-                  Klasické příklady a + b a a − b, čísla do 100.
-                </p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setContestTyp("chybejici_cislo")}
-                className={`rounded-2xl border-2 p-6 text-left shadow-sm transition focus-visible:outline focus-visible:ring-2 focus-visible:ring-offset-2 md:min-h-[180px] md:p-8 ${
-                  contestTyp === "chybejici_cislo"
-                    ? "border-[#BF5AF2] bg-violet-50 ring-2 ring-[#BF5AF2]"
-                    : "border-[#e5e7eb] bg-[#ffffff] hover:border-violet-200"
-                }`}
-                aria-pressed={contestTyp === "chybejici_cislo"}
-              >
-                <span className="text-2xl" aria-hidden>
-                  🟣
-                </span>
-                <span className="mt-2 block text-xl font-bold md:text-2xl">
-                  Chybějící číslo
-                </span>
-                <p className="mt-1 text-sm text-[#6b7280] md:text-base">
-                  Znáš výsledek — doplň chybějící číslo (sčítání i odečítání).
-                </p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setContestTyp("all")}
-                className={`rounded-2xl border-2 p-6 text-left shadow-sm transition focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2 md:min-h-[180px] md:p-8 ${
-                  contestTyp === "all"
-                    ? "border-emerald-400 bg-emerald-50 ring-2 ring-emerald-300"
-                    : "border-[#e5e7eb] bg-[#ffffff] hover:border-emerald-200"
-                }`}
-                aria-pressed={contestTyp === "all"}
-              >
-                <span className="text-2xl" aria-hidden>
-                  🟢
-                </span>
-                <span className="mt-2 block text-xl font-bold md:text-2xl">
-                  Vše dohromady
-                </span>
-                <p className="mt-1 text-sm text-[#6b7280] md:text-base">
-                  Mix: násobilka, dělení, ± po desítkách, sčítání a odečítání do
-                  100, chybějící číslo u + a −.
-                </p>
-              </button>
+            <div className="mb-8 grid gap-3 sm:grid-cols-2">
+              {TYPE_CARDS.map((c) => {
+                const rek = introRekordy[c.typ];
+                const selected = selectedTyp === c.typ;
+                return (
+                  <button
+                    key={c.typ}
+                    type="button"
+                    onClick={() => setSelectedTyp(c.typ)}
+                    className={`app-card text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent focus-visible:ring-offset-2 focus-visible:ring-offset-app-bg ${
+                      selected
+                        ? "border-app-accent ring-2 ring-app-accent ring-offset-2 ring-offset-app-bg"
+                        : "hover:border-app-border-hover"
+                    }`}
+                    style={
+                      selected
+                        ? { borderColor: `${c.accent}99` }
+                        : undefined
+                    }
+                    aria-pressed={selected}
+                  >
+                    <div className="p-5 sm:p-6">
+                      <span className="text-2xl" aria-hidden>
+                        {c.emoji}
+                      </span>
+                      <span className="mt-2 block text-lg font-bold sm:text-xl">
+                        {c.title}
+                      </span>
+                      <p className="mt-1 text-sm text-app-muted">{c.desc}</p>
+                      <p className="mt-3 text-xs text-app-subtle">
+                        {rekordLine(rek ?? null)}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
 
-            <div className="flex justify-center">
+            <div className="flex justify-center pb-8">
               <button
                 type="button"
-                disabled={!contestTyp}
-                onClick={() => contestTyp && startGame(contestTyp)}
-                className="inline-flex min-h-[56px] min-w-[240px] items-center justify-center rounded-2xl bg-[#3b82f6] px-10 text-lg font-bold text-white shadow-md transition hover:bg-blue-600 focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 animate-bounce md:min-h-[72px] md:min-w-[280px] md:text-xl md:px-14"
-                aria-label="Spustit pětiminutovky"
+                disabled={!selectedTyp}
+                onClick={() => selectedTyp && startRound(selectedTyp)}
+                className="app-btn-pill app-btn-primary min-h-[52px] min-w-[200px] px-10 text-lg font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent focus-visible:ring-offset-2 focus-visible:ring-offset-app-bg disabled:cursor-not-allowed disabled:opacity-45"
+                aria-label="Začít pětiminutovky"
               >
-                STARTOVAT 🚀
+                ZAČÍT
               </button>
             </div>
-          </div>
+          </>
         )}
 
-        {phase === "play" && problem && (
-          <div className="flex min-h-0 flex-1 flex-col gap-4 md:gap-6">
-            <div className="flex shrink-0 justify-end">
-              <button
-                type="button"
-                onClick={togglePause}
-                className="rounded-xl border border-[#e5e7eb] bg-[#fafafa] px-4 py-2 text-sm font-medium text-[#1a1a1a] hover:bg-[#f3f4f6] focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] md:px-6 md:py-3 md:text-lg"
-              >
-                {paused ? "▶ Pokračovat" : "⏸ Pauza"}
-              </button>
-            </div>
-
-            <div className="relative flex min-h-0 flex-1 flex-col">
-              {paused && (
-                <div
-                  className="absolute inset-0 z-10 flex items-center justify-center rounded-3xl bg-[#6b7280]/40 backdrop-blur-[1px]"
-                  aria-live="polite"
+        {phase === "play" && playTyp && problems.length === COUNT && (
+          <>
+            <div
+              className="fixed right-0 left-0 z-40 border-b border-app-nav-border bg-app-nav-bg/95 px-3 py-2 backdrop-blur-md sm:px-4"
+              style={{
+                top: topOffset,
+                WebkitBackdropFilter: "blur(12px)",
+              }}
+            >
+              <div className="mx-auto flex max-w-[800px] items-center justify-between gap-2 text-sm sm:text-base">
+                <span
+                  className="min-w-0 shrink truncate font-medium text-app-fg"
+                  style={{ maxWidth: "38%" }}
                 >
-                  <p className="rounded-xl bg-app-card px-6 py-4 text-lg font-semibold shadow-lg md:px-10 md:py-6 md:text-2xl">
-                    Pauza — odpočiň si 😊
-                  </p>
-                </div>
-              )}
-
-              <div className="flex min-h-0 flex-1 flex-col rounded-3xl border border-[#e5e7eb] bg-[#ffffff] p-4 shadow-sm sm:p-6 md:p-8 lg:p-10">
-                <p className="flex min-h-[3.5rem] flex-1 items-center justify-center text-center text-4xl font-bold leading-tight text-[#1a1a1a] sm:min-h-[4rem] sm:text-5xl md:min-h-[5rem] md:text-6xl lg:min-h-0 lg:text-7xl xl:text-8xl">
-                  {problem.display}
-                </p>
-
-                <div className="mt-4 flex flex-col items-stretch gap-4 md:mt-6 md:gap-6">
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    inputMode="numeric"
-                    autoFocus
-                    disabled={paused || blocking}
-                    aria-label="Odpověď"
-                    value={input}
-                    onChange={(e) =>
-                      setInput(e.target.value.replace(/\D/g, ""))
-                    }
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") submit();
-                    }}
-                    className="w-full max-w-none rounded-2xl border-2 border-[#3b82f6] px-3 py-4 text-center text-4xl font-bold text-[#1a1a1a] focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] disabled:bg-[#f3f4f6] sm:py-5 sm:text-5xl md:py-6 md:text-6xl lg:mx-auto lg:max-w-4xl lg:text-7xl"
-                  />
-
-                  <div className="grid w-full max-w-none grid-cols-3 gap-2 sm:grid-cols-6 sm:gap-3 md:gap-4 lg:mx-auto lg:max-w-5xl">
-                    {["1", "2", "3", "4", "5", "6", "7", "8", "9", "⌫", "0", "OK"].map(
-                      (k) => (
-                        <button
-                          key={k}
-                          type="button"
-                          disabled={paused || blocking}
-                          className="min-h-[52px] min-w-0 rounded-xl border border-[#e5e7eb] bg-[#fafafa] text-lg font-semibold text-[#1a1a1a] hover:bg-[#f3f4f6] focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] disabled:opacity-50 sm:min-h-[56px] sm:text-xl md:min-h-[72px] md:text-2xl lg:min-h-[80px] lg:text-3xl"
-                          aria-label={
-                            k === "⌫"
-                              ? "Smazat číslo"
-                              : k === "OK"
-                                ? "Potvrdit odpověď"
-                                : `Číslice ${k}`
-                          }
-                          onClick={() => {
-                            if (k === "⌫") {
-                              setInput((s) => s.slice(0, -1));
-                              return;
-                            }
-                            if (k === "OK") {
-                              submit();
-                              return;
-                            }
-                            setInput((s) => s + k);
-                          }}
-                        >
-                          {k}
-                        </button>
-                      ),
-                    )}
-                  </div>
-                </div>
-
-                {motivation && (
-                  <p className="mt-3 text-center text-lg font-semibold text-[#3b82f6] md:text-xl">
-                    {motivation}
-                  </p>
-                )}
+                  {
+                    TYPE_CARDS.find((t) => t.typ === playTyp)?.shortTitle
+                  }
+                </span>
+                <span className="shrink-0 text-app-muted tabular-nums">
+                  {filledCount} / {COUNT} vyplněno
+                </span>
+                <span className="shrink-0 tabular-nums text-app-subtle">
+                  {formatMmSs(elapsedSec)}
+                </span>
               </div>
             </div>
-          </div>
-        )}
 
-        {phase === "done" && contestTyp && (
-          <div className="space-y-8">
-            <section className="rounded-3xl border border-[#e5e7eb] bg-[#fafafa] p-8 text-center shadow-sm">
-              <h2 className="text-3xl font-bold text-[#1a1a1a]">
-                Konec kola — výsledky
-              </h2>
-              <ul className="mx-auto mt-6 max-w-md space-y-2 text-left text-lg">
-                <li>
-                  Příkladů celkem:{" "}
-                  <strong className="tabular-nums">{totalAttempts}</strong>
-                </li>
-                <li className="text-emerald-600">
-                  Správně:{" "}
-                  <strong className="tabular-nums">{correct}</strong>
-                </li>
-                <li className="text-rose-600">
-                  Špatně: <strong className="tabular-nums">{wrong}</strong>
-                </li>
-                <li>
-                  Úspěšnost:{" "}
-                  <strong className="tabular-nums">
-                    {totalAttempts > 0 ? `${accPct} %` : "—"}
-                  </strong>
-                </li>
-              </ul>
-            </section>
+            <div
+              style={{
+                paddingTop:
+                  "calc(3.5rem + env(safe-area-inset-top, 0px) + 3.25rem)",
+              }}
+            >
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+                {problems.map((ex, i) => {
+                  const { before, after } = splitDisplay(ex.display);
+                  const res = resultsPerIndex[i];
+                  const val = answers[i] ?? "";
+                  const hasVal = val.trim() !== "";
+                  const pulseEmpty =
+                    !graded &&
+                    filledCount > 0 &&
+                    filledCount < COUNT &&
+                    !hasVal;
 
-            <section className="rounded-3xl border border-[#e5e7eb] bg-[#ffffff] p-6 shadow-sm sm:p-8">
-              <h3 className="text-xl font-semibold text-[#1a1a1a]">
-                Příklady, které nebyly správně
-              </h3>
-              {wrongLog.length === 0 ? (
-                <p className="mt-4 text-[#6b7280]">
-                  Žádné — všechny zapsané odpovědi v téhle sérii sedí. Skvělá
-                  práce.
-                </p>
-              ) : (
-                <ul className="mt-4 list-inside list-disc space-y-3 text-left text-base text-[#1a1a1a]">
-                  {wrongLog.map((w, i) => (
-                    <li key={`${w.ex.display}-${w.userAnswer}-${i}`}>
-                      <span className="font-semibold">{w.ex.display}</span>
-                      {" — "}
-                      napsala jsi{" "}
-                      <span className="tabular-nums text-rose-600">
-                        {w.userAnswer}
+                  let cardBg = "bg-app-card";
+                  let borderRing = "border-app-border";
+                  if (graded && res === "ok") {
+                    cardBg = "bg-[rgba(48,209,88,0.15)]";
+                    borderRing = "border-[rgba(48,209,88,0.55)]";
+                  } else if (graded && res === "bad") {
+                    cardBg = "bg-[rgba(255,69,58,0.10)]";
+                    borderRing = "border-[rgba(255,69,58,0.45)]";
+                  }
+
+                  return (
+                    <div
+                      key={`${i}-${ex.display}-${ex.answer}`}
+                      className={`relative rounded-2xl border p-4 sm:p-5 ${cardBg} ${borderRing}`}
+                    >
+                      <span className="absolute left-3 top-3 text-xs text-app-subtle sm:left-4 sm:top-4">
+                        {i + 1}
                       </span>
-                      , správně je{" "}
-                      <span className="tabular-nums text-emerald-600">
-                        {w.ex.answer}
-                      </span>
-                      .
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-
-            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
-              <button
-                type="button"
-                onClick={() => {
-                  deadlineRef.current = null;
-                  finishedRef.current = false;
-                  setWrongLog([]);
-                  setPhase("intro");
-                  setContestTyp(null);
-                  setProblem(null);
-                  setEndsAt(null);
-                }}
-                className="rounded-2xl border border-[#e5e7eb] bg-[#ffffff] px-6 py-3 font-semibold text-[#1a1a1a] shadow-sm hover:bg-[#fafafa] focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6]"
-              >
-                🔄 Hrát znovu
-              </button>
-              <Link
-                href="/matematika/petiminutovky/statistiky"
-                className="inline-flex items-center justify-center rounded-2xl border border-[#e5e7eb] bg-[#ffffff] px-6 py-3 text-sm font-semibold text-[#6b7280] shadow-sm hover:bg-[#fafafa] focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6]"
-              >
-                📊 Statistiky (volitelně)
-              </Link>
-              <Link
-                href="/matematika"
-                className="inline-flex items-center justify-center rounded-2xl bg-[#3b82f6] px-6 py-3 font-semibold text-white shadow-sm hover:bg-blue-600 focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2"
-              >
-                🏠 Zpět na matematiku
-              </Link>
+                      <div className="mt-5 flex flex-wrap items-center gap-x-1 gap-y-2 text-[min(22px,5.5vw)] font-bold leading-tight sm:text-2xl">
+                        <span className="tabular-nums">{before}</span>
+                        <input
+                          ref={(el) => {
+                            inputRefs.current[i] = el;
+                          }}
+                          type="number"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          tabIndex={i + 1}
+                          disabled={graded}
+                          value={val}
+                          onChange={(e) => setAnswerAt(i, e.target.value)}
+                          onKeyDown={(e) => onAnswerKeyDown(e, i)}
+                          aria-label={`Odpověď příkladu ${i + 1}`}
+                          className={`petiminutovky-num-input h-12 w-[88px] min-h-[48px] border-0 border-b-2 border-app-input-border bg-app-input text-center text-[min(22px,5.5vw)] font-bold text-app-fg outline-none transition sm:h-14 sm:w-20 sm:text-2xl ${
+                            pulseEmpty ? "animate-pulse" : ""
+                          } rounded-none focus-visible:ring-2 focus-visible:ring-app-accent focus-visible:ring-offset-2 focus-visible:ring-offset-app-bg disabled:opacity-90`}
+                          style={{
+                            borderBottomColor:
+                              hasVal && !graded ? accentForPlay : undefined,
+                            color: "var(--app-fg)",
+                          }}
+                        />
+                        <span className="tabular-nums">{after}</span>
+                        {graded && res === "ok" && (
+                          <span
+                            className="ml-1 text-emerald-400"
+                            aria-hidden
+                          >
+                            ✓
+                          </span>
+                        )}
+                      </div>
+                      {graded && res === "bad" && (
+                        <p className="mt-2 text-sm text-app-muted">
+                          Správně:{" "}
+                          <span className="font-semibold text-app-fg tabular-nums">
+                            {ex.answer}
+                          </span>
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          </>
         )}
       </div>
+
+      {phase === "play" && playTyp && (
+        <div
+          className="fixed right-0 bottom-0 left-0 z-40 border-t border-app-nav-border px-3 py-3 backdrop-blur-md sm:px-4"
+          style={{
+            paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
+            background: graded ? "rgba(0,0,0,0.92)" : "rgba(0,0,0,0.9)",
+            WebkitBackdropFilter: "blur(12px)",
+            backdropFilter: "blur(12px)",
+          }}
+        >
+          <div className="mx-auto max-w-[800px]">
+            {!graded ? (
+              <button
+                type="button"
+                disabled={filledCount < 1}
+                onClick={evaluate}
+                className="app-btn-pill flex min-h-[52px] w-full items-center justify-center gap-2 text-base font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:cursor-not-allowed disabled:opacity-40 sm:text-lg"
+                style={{
+                  backgroundColor:
+                    filledCount >= 1 ? accentForPlay : "rgba(255,255,255,0.12)",
+                  color: filledCount >= 1 ? "#fff" : "rgba(255,255,255,0.45)",
+                }}
+                aria-label="Zkontrolovat výsledky"
+              >
+                Zkontrolovat výsledky →
+              </button>
+            ) : (
+              <div className="space-y-3 text-app-fg">
+                <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm sm:text-base">
+                  <span className="tabular-nums">
+                    ✅ {spravneCount} správně
+                  </span>
+                  <span className="tabular-nums">
+                    ❌ {spatneCount} špatně
+                  </span>
+                  <span className="tabular-nums text-app-muted">
+                    ⏱ {formatMmSs(elapsedSec)}
+                  </span>
+                </div>
+                <p className="text-center text-base font-semibold">
+                  {scoreMessage(spravneCount)}
+                </p>
+                <p className="text-center text-sm text-app-muted">
+                  {comparisonLine(
+                    spravneCount,
+                    elapsedSec,
+                    rekordSnapshot,
+                  )}
+                </p>
+                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-center">
+                  <button
+                    type="button"
+                    onClick={newExamplesSameTyp}
+                    className="app-btn-pill app-btn-secondary min-h-[48px] flex-1 px-4 py-2 text-sm font-semibold sm:flex-none sm:px-6"
+                  >
+                    🔄 Nové příklady
+                  </button>
+                  <Link
+                    href="/matematika/petiminutovky/statistiky"
+                    className="app-btn-pill app-btn-secondary inline-flex min-h-[48px] flex-1 items-center justify-center px-4 py-2 text-center text-sm font-semibold sm:flex-none sm:px-6"
+                  >
+                    📊 Statistiky
+                  </Link>
+                  <Link
+                    href="/matematika"
+                    className="app-btn-pill inline-flex min-h-[48px] flex-1 items-center justify-center border border-app-border bg-app-card px-4 py-2 text-sm font-semibold sm:flex-none sm:px-6"
+                  >
+                    🏠 Zpět
+                  </Link>
+                </div>
+                <button
+                  type="button"
+                  onClick={backToIntro}
+                  className="w-full text-center text-sm text-app-subtle underline-offset-2 hover:text-app-muted hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent"
+                >
+                  Změnit typ úloh
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

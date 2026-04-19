@@ -9,13 +9,19 @@ export interface Kapitola {
   obtiznosti: Obtiznost[];
 }
 
-export type PrikladTyp = "ano-ne" | "vypocet" | "doplneni";
+export type PrikladTyp = "ano-ne" | "vypocet" | "doplneni" | "multi-vyber";
 
 export interface Priklad {
   zadani: string;
   odpoved: string;
   vysvetleni: string;
   typ: PrikladTyp;
+  /** U typu `multi-vyber` — nabídka čísel (např. dělitelů k označení). */
+  moznosti?: string[];
+  /** U typu `multi-vyber` — které z `moznosti` mají být vybrané (shoda množin). */
+  spravneMoznosti?: string[];
+  /** Volitelná nápověda k zadání. */
+  hint?: string;
 }
 
 export const KAPITOLY: readonly Kapitola[] = [

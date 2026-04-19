@@ -136,7 +136,50 @@ export type PetiminutovkaRunLog = {
   typ: PetiminutovkaTyp;
   correct: number;
   wrong: number;
+  /** Nový formát pětiminutovek — čas kola ve stopkách */
+  timeSec?: number;
 };
+
+/** Jedna chyba v historii kola (LocalStorage `math_petiminutovky_history`). */
+export type PetiminutovkaHistoryChyba = {
+  priklad: string;
+  odpoved: number | null;
+  spravne: number;
+  category: string;
+  missingPosition: string;
+};
+
+export type PetiminutovkaHistoryEntry = {
+  id: string;
+  datum: string;
+  typ: PetiminutovkaTyp;
+  cas_sekundy: number;
+  celkem: 20;
+  spravne: number;
+  spatne: number;
+  chyby: PetiminutovkaHistoryChyba[];
+};
+
+export type PetiminutovkaRekordyMap = Partial<
+  Record<PetiminutovkaTyp, { cas: number; spravne: number }>
+>;
+
+const PET_HISTORY_KEY = "math_petiminutovky_history";
+const PET_REKORDY_KEY = "math_petiminutovky_rekordy";
+
+/** Starý zápis `math_petiminutovky_record_*` bez času — nepoužívá se k porovnání času. */
+const LEGACY_CAS_SENTINEL = 999_999;
+
+function betterPetRun(
+  a: { cas: number; spravne: number },
+  b: { cas: number; spravne: number },
+): boolean {
+  if (a.spravne === 20 && b.spravne === 20) return a.cas < b.cas;
+  if (a.spravne === 20 && b.spravne < 20) return true;
+  if (a.spravne < 20 && b.spravne === 20) return false;
+  if (a.spravne !== b.spravne) return a.spravne > b.spravne;
+  return a.cas < b.cas;
+}
 
 const PET_KEYS = {
   record: (t: PetiminutovkaTyp) => `math_petiminutovky_record_${t}`,
@@ -160,8 +203,27 @@ function writeJson(key: string, value: unknown): void {
   window.localStorage.setItem(key, JSON.stringify(value));
 }
 
+export function getPetiminutovkaRekordy(): PetiminutovkaRekordyMap {
+  return readJson<PetiminutovkaRekordyMap>(PET_REKORDY_KEY) ?? {};
+}
+
+/** Nejlepší uložený výkon pro typ (čas + počet správně z 20). */
+export function getPetiminutovkaRekord(
+  typ: PetiminutovkaTyp,
+): { cas: number; spravne: number } | null {
+  const fromMap = getPetiminutovkaRekordy()[typ];
+  if (fromMap) return fromMap;
+  const legacy = readNum(PET_KEYS.record(typ));
+  if (legacy != null && legacy > 0 && legacy <= 20) {
+    return { cas: LEGACY_CAS_SENTINEL, spravne: legacy };
+  }
+  return null;
+}
+
+/** Nejvyšší počet správně v uloženém rekordu (hvězdy v přehledu matematiky). */
 export function getPetiminutovkaRecord(typ: PetiminutovkaTyp): number | null {
-  return readNum(PET_KEYS.record(typ));
+  const r = getPetiminutovkaRekord(typ);
+  return r ? r.spravne : null;
 }
 
 export function setPetiminutovkaRecordIfBetter(
@@ -169,8 +231,9 @@ export function setPetiminutovkaRecordIfBetter(
   correct: number,
 ): boolean {
   if (typeof window === "undefined") return false;
-  const prev = readNum(PET_KEYS.record(typ)) ?? -1;
-  if (correct > prev) {
+  const prevRek = getPetiminutovkaRekord(typ);
+  const prevNum = prevRek?.spravne ?? readNum(PET_KEYS.record(typ)) ?? -1;
+  if (correct > prevNum) {
     writeNum(PET_KEYS.record(typ), correct);
     return true;
   }
@@ -192,13 +255,16 @@ export function savePetiminutovkaRun(
   typ: PetiminutovkaTyp,
   correct: number,
   wrong: number,
+  opts?: { timeSec?: number; skipLegacyCorrectCount?: boolean },
 ): { isNewRecord: boolean } {
   if (typeof window === "undefined") return { isNewRecord: false };
   const date = new Date().toISOString();
   const z: PetiminutovkaZaznam = { date, correct, wrong };
   pushLastFive(typ, z);
   writeNum(PET_KEYS.lastCorrect(typ), correct);
-  const isNewRecord = setPetiminutovkaRecordIfBetter(typ, correct);
+  const isNewRecord = opts?.skipLegacyCorrectCount
+    ? false
+    : setPetiminutovkaRecordIfBetter(typ, correct);
 
   const runs = readJson<PetiminutovkaRunLog[]>(PET_KEYS.runs) ?? [];
   runs.unshift({
@@ -206,10 +272,45 @@ export function savePetiminutovkaRun(
     typ,
     correct,
     wrong,
+    ...(opts?.timeSec != null ? { timeSec: opts.timeSec } : {}),
   });
   writeJson(PET_KEYS.runs, runs.slice(0, 200));
 
   return { isNewRecord };
+}
+
+export function appendPetiminutovkaHistory(entry: PetiminutovkaHistoryEntry): void {
+  if (typeof window === "undefined") return;
+  const list = readJson<PetiminutovkaHistoryEntry[]>(PET_HISTORY_KEY) ?? [];
+  list.unshift(entry);
+  writeJson(PET_HISTORY_KEY, list.slice(0, 200));
+}
+
+/** Aktualizuje `math_petiminutovky_rekordy` — lepší = 20/20 s kratším časem, jinak vyšší počet správně / při shodě kratší čas. */
+export function mergePetiminutovkaRekord(
+  typ: PetiminutovkaTyp,
+  run: { cas: number; spravne: number },
+): void {
+  if (typeof window === "undefined") return;
+  const m: PetiminutovkaRekordyMap = { ...getPetiminutovkaRekordy() };
+  const prev = m[typ] ?? null;
+  if (prev == null || betterPetRun(run, prev)) {
+    m[typ] = run;
+    writeJson(PET_REKORDY_KEY, m);
+  }
+}
+
+/** Historie + rekordy + graf (bez zápisu do legacy `math_petiminutovky_record_*`). */
+export function finalizePetiminutovkaRound(entry: PetiminutovkaHistoryEntry): void {
+  appendPetiminutovkaHistory(entry);
+  mergePetiminutovkaRekord(entry.typ, {
+    cas: entry.cas_sekundy,
+    spravne: entry.spravne,
+  });
+  savePetiminutovkaRun(entry.typ, entry.spravne, entry.spatne, {
+    timeSec: entry.cas_sekundy,
+    skipLegacyCorrectCount: true,
+  });
 }
 
 export function getPetiminutovkaLastFive(

@@ -119,8 +119,8 @@ function buildCards(
   return [
     {
       href: "/matematika/delitelnost",
-      title: "Dělitelnost pro Teodora",
-      desc: "Dělitelnost – 15 kapitol: násobky, znaky, prvočísla, slovní úlohy.",
+      title: "Dělitelnost",
+      desc: "Pro Teo — 15 kapitol: násobky, znaky, prvočísla, slovní úlohy.",
       emoji: "🔢",
       stars: 0,
     },

@@ -1,5 +1,5 @@
 /** Řádek z tabulky `pokemon_cards` (Supabase vrací snake_case). */
-export interface PokemonCardRow {
+export interface PokemonCard {
   id: number;
   name: string;
   card_set: string;
@@ -9,6 +9,9 @@ export interface PokemonCardRow {
   image_url: string | null;
   created_at: string;
 }
+
+/** Alias pro starší importy — stejný tvar jako `PokemonCard`. */
+export type PokemonCardRow = PokemonCard;
 
 /** Povolené hodnoty stavu karty ve formuláři. */
 export const POKEMON_CONDITIONS = [

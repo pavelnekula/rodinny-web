@@ -6,7 +6,6 @@ const NAV = [
   { href: "/", label: "Nekulovi" },
   { href: "/tinuska", label: "Tinuška" },
   { href: "/teo", label: "Teo" },
-  { href: "/teodor", label: "Teodor" },
   { href: "/sklep-u-kaplicky", label: "Sklep u Kapličky" },
 ] as const;
 

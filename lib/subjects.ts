@@ -29,7 +29,8 @@ export const tinuskaSubjects: readonly SubjectNav[] = [
 
 export const teoSubjects: readonly SubjectNav[] = [
   { name: "Čeština", emoji: "📖", href: "/teo" },
-  { name: "Matematika", emoji: "🔢", href: "/teo" },
+  { name: "Matematika", emoji: "🔢", href: "/matematika" },
   { name: "Zeměpis", emoji: "🗺️", href: "/teo" },
   { name: "Angličtina", emoji: "🇬🇧", href: "/teo/anglictina" },
+  { name: "Pokémon", emoji: "🃏", href: "/teo/pokemon" },
 ] as const;

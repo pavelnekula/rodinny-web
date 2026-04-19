@@ -66,6 +66,16 @@ export function lcm(a: number, b: number): number {
   return Math.abs((a / gcd(a, b)) * b);
 }
 
+/** NSD tří přirozených čísel. */
+export function gcd3(a: number, b: number, c: number): number {
+  return gcd(gcd(a, b), c);
+}
+
+/** NSN tří přirozených čísel. */
+export function lcm3(a: number, b: number, c: number): number {
+  return lcm(lcm(a, b), c);
+}
+
 export function soucetCislic(n: number): number {
   return String(Math.abs(Math.floor(n)))
     .split("")

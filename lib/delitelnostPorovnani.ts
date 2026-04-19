@@ -37,6 +37,12 @@ export function porovnejOdpoved(
     const b = Number(String(spravne).trim().replace(/\s+/g, ""));
     return Number.isFinite(a) && Number.isFinite(b) && a === b;
   }
+  if (typ === "multi-vyber") {
+    const ua = parseIntsFromList(uzivatel).sort((x, y) => x - y);
+    const va = parseIntsFromList(spravne).sort((x, y) => x - y);
+    if (ua.length !== va.length) return false;
+    return ua.every((n, i) => n === va[i]);
+  }
   const ua = parseIntsFromList(uzivatel).sort((x, y) => x - y);
   const va = parseIntsFromList(spravne).sort((x, y) => x - y);
   if (ua.length !== va.length) return false;

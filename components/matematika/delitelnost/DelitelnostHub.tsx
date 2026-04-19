@@ -36,7 +36,7 @@ export function DelitelnostHub() {
 
       <header className="mb-10 text-center sm:text-left">
         <h1 className="app-title-gradient text-3xl font-bold tracking-[-0.04em] sm:text-4xl md:text-5xl">
-          Dělitelnost pro Teodora 🔢
+          Dělitelnost 🔢
         </h1>
         <p className="mt-3 max-w-2xl text-lg text-app-muted">
           Procvičuj krok za krokem – od násobků až po olympijské úlohy. V každé

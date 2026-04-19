@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { KapitolaId } from "@/data/delitelnost";
 import { getKapitola, type Obtiznost, type Priklad } from "@/data/delitelnost";
 import { vygenerujPriklad } from "@/lib/delitelnostGenerators";
@@ -44,14 +44,21 @@ export function DelitelnostSession({ kapitolaId }: { kapitolaId: KapitolaId }) {
   const [flash, setFlash] = useState<"ok" | "bad" | null>(null);
   const [shake, setShake] = useState(false);
   const [confetti, setConfetti] = useState(false);
+  /** Vybrané hodnoty u typu `multi-vyber` (např. dělitelé). */
+  const [vybraneMoznosti, setVybraneMoznosti] = useState<string[]>([]);
 
   const aktualni = rada[index] ?? null;
+
+  useEffect(() => {
+    setVybraneMoznosti([]);
+  }, [index, aktualni?.zadani]);
 
   const spustSadou = useCallback(
     (seznam: Priklad[]) => {
       setRada(seznam);
       setIndex(0);
       setVstup("");
+      setVybraneMoznosti([]);
       setVysledky([]);
       setPosledniOk(null);
       setFaze("priklad");
@@ -68,11 +75,25 @@ export function DelitelnostSession({ kapitolaId }: { kapitolaId: KapitolaId }) {
     [kapitolaId, spustSadou],
   );
 
+  const toggleMoznost = useCallback((moznost: string) => {
+    setVybraneMoznosti((prev) =>
+      prev.includes(moznost)
+        ? prev.filter((x) => x !== moznost)
+        : [...prev, moznost],
+    );
+  }, []);
+
   const zkontroluj = useCallback(() => {
     if (!aktualni || faze !== "priklad" || obtiznost == null) return;
-    const ok = porovnejOdpoved(vstup, aktualni.odpoved, aktualni.typ);
+    const userStr =
+      aktualni.typ === "multi-vyber"
+        ? [...vybraneMoznosti]
+            .sort((a, b) => Number(a) - Number(b))
+            .join(", ")
+        : vstup;
+    const ok = porovnejOdpoved(userStr, aktualni.odpoved, aktualni.typ);
     setPosledniOk(ok);
-    setVysledky((r) => [...r, { priklad: aktualni, uzivatel: vstup, ok }]);
+    setVysledky((r) => [...r, { priklad: aktualni, uzivatel: userStr, ok }]);
     setFaze("feedback");
     if (ok) {
       zvukSpravne();
@@ -84,7 +105,7 @@ export function DelitelnostSession({ kapitolaId }: { kapitolaId: KapitolaId }) {
       window.setTimeout(() => setShake(false), 450);
     }
     window.setTimeout(() => setFlash(null), 500);
-  }, [aktualni, faze, obtiznost, vstup]);
+  }, [aktualni, faze, obtiznost, vstup, vybraneMoznosti]);
 
   const dalsi = useCallback(() => {
     if (index + 1 >= rada.length) {
@@ -102,6 +123,7 @@ export function DelitelnostSession({ kapitolaId }: { kapitolaId: KapitolaId }) {
     }
     setIndex((i) => i + 1);
     setVstup("");
+    setVybraneMoznosti([]);
     setPosledniOk(null);
     setFaze("priklad");
   }, [index, kapitolaId, rada.length]);
@@ -218,9 +240,40 @@ export function DelitelnostSession({ kapitolaId }: { kapitolaId: KapitolaId }) {
           <p className="text-center text-xl font-semibold leading-snug text-app-fg sm:text-2xl">
             {aktualni.zadani}
           </p>
+          {aktualni.hint && (
+            <p className="mt-3 text-center text-sm text-app-muted">{aktualni.hint}</p>
+          )}
 
           {faze === "priklad" && (
             <div className="mt-8 space-y-4">
+              {aktualni.typ === "multi-vyber" &&
+                aktualni.moznosti &&
+                aktualni.moznosti.length > 0 && (
+                  <div
+                    className="flex flex-wrap justify-center gap-3"
+                    role="group"
+                    aria-label="Výběr dělitelů"
+                  >
+                    {aktualni.moznosti.map((moznost) => {
+                      const sel = vybraneMoznosti.includes(moznost);
+                      return (
+                        <button
+                          key={moznost}
+                          type="button"
+                          onClick={() => toggleMoznost(moznost)}
+                          className={`min-w-[3.5rem] rounded-xl border-2 px-5 py-3 text-lg font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
+                            sel
+                              ? "border-indigo-500 bg-indigo-600 text-white"
+                              : "border-app-border bg-app-card text-app-fg hover:border-indigo-400"
+                          }`}
+                          aria-pressed={sel}
+                        >
+                          {moznost}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               {aktualni.typ === "ano-ne" && (
                 <div className="flex flex-wrap justify-center gap-4">
                   <button
@@ -266,7 +319,9 @@ export function DelitelnostSession({ kapitolaId }: { kapitolaId: KapitolaId }) {
                 onClick={zkontroluj}
                 disabled={
                   faze !== "priklad" ||
-                  (aktualni.typ !== "ano-ne" && vstup.trim() === "")
+                  (aktualni.typ === "ano-ne" && vstup.trim() === "") ||
+                  ((aktualni.typ === "vypocet" || aktualni.typ === "doplneni") &&
+                    vstup.trim() === "")
                 }
                 className="app-btn-pill app-btn-primary mx-auto flex w-full max-w-xs justify-center py-3 disabled:opacity-40"
               >

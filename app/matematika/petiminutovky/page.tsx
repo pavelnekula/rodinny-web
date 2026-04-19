@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Pětiminutovky | Matematika",
   description:
-    "Pět minut klidného počítání — násobilka, dělení a mix; bez času a skóre na obrazovce.",
+    "Dvacet příkladů najednou, vlastní tempo a stopky — klidné počítání pro Tinušku.",
 };
 
 export default function PetiminutovkyPage() {

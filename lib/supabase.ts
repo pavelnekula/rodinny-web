@@ -1,31 +1,41 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 /**
- * True, pokud jsou nastavené proměnné prostředí.
- * Na Vercelu musí být doplněné v Project Settings → Environment Variables.
+ * True, pokud jsou nastavené proměnné prostředí (bezpečné pro build i SSR).
  */
 export const isSupabaseConfigured = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() &&
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim(),
 );
 
-let cached: SupabaseClient | null = null;
+/* Placeholder jen kvůli importu modulu při buildu bez .env — dotazy vždy chraň přes isSupabaseConfigured. */
+const PLACEHOLDER_URL = "https://placeholder.supabase.co";
+const PLACEHOLDER_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSJ9.placeholder";
+
+const supabaseUrl =
+  process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || PLACEHOLDER_URL;
+const supabaseAnonKey =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() || PLACEHOLDER_KEY;
 
 /**
- * Klient pro veřejné (anon) operace — v Supabase zapni RLS a politiky pro SELECT/INSERT.
- * Nevolat bez `isSupabaseConfigured` — jinak vyhodí výjimku.
- * Lazy init: prázdné URL při buildu na Vercelu bez env dřív shodilo celý build („supabaseUrl is required“).
+ * Hlavní Supabase klient (anon klíč).
+ * Na produkci musí být nastavené skutečné URL a klíč z dashboardu.
+ */
+export const supabase: SupabaseClient = createClient(
+  supabaseUrl,
+  supabaseAnonKey,
+);
+
+/**
+ * Vrací stejný klient jako `supabase` — po předchozí kontrole `isSupabaseConfigured`.
+ * @throws pokud chybí env (aby se omylem nevolal placeholder proti špatnému projektu).
  */
 export function getSupabase(): SupabaseClient {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ?? "";
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ?? "";
-  if (!url || !key) {
+  if (!isSupabaseConfigured) {
     throw new Error(
       "Chybí NEXT_PUBLIC_SUPABASE_URL nebo NEXT_PUBLIC_SUPABASE_ANON_KEY.",
     );
   }
-  if (!cached) {
-    cached = createClient(url, key);
-  }
-  return cached;
+  return supabase;
 }

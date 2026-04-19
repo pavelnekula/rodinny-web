@@ -3,9 +3,11 @@ import {
   delitele,
   faktorySeznam,
   gcd,
+  gcd3,
   jeNasobek,
   jePrvocislo,
   lcm,
+  lcm3,
   pocetDelitelu,
   prvociselnyRozklad,
   randomInt,
@@ -30,11 +32,37 @@ function vypocet(z: string, o: number, v: string): Priklad {
   };
 }
 
-function doplneni(z: string, o: string, v: string): Priklad {
-  return { zadani: z, odpoved: o, vysvetleni: v, typ: "doplneni" };
+function doplneni(z: string, o: string, v: string, hint?: string): Priklad {
+  const p: Priklad = { zadani: z, odpoved: o, vysvetleni: v, typ: "doplneni" };
+  if (hint) p.hint = hint;
+  return p;
+}
+
+/** Výběr více možností — `odpoved` je seřazený seznam správných hodnot oddělený čárkou. */
+function multiVyber(
+  z: string,
+  odpovedSerazene: string,
+  v: string,
+  moznosti: string[],
+  spravne: string[],
+): Priklad {
+  return {
+    zadani: z,
+    odpoved: odpovedSerazene,
+    vysvetleni: v,
+    typ: "multi-vyber",
+    moznosti,
+    spravneMoznosti: spravne,
+  };
 }
 
 export function generujNasobek(o: Obtiznost): Priklad {
+  /** Občas doplňování číslice (dělitelnost 2 nebo 5) — propojení s násobky/paritou. */
+  if (randomInt(0, 99) < 14) {
+    const div = randomInt(0, 1) === 0 ? 2 : 5;
+    const d = generujDoplneniCislice(o, div);
+    if (d) return d;
+  }
   if (o === "lehka") {
     const y = randomInt(2, 5);
     const k = randomInt(1, 10);
@@ -69,6 +97,9 @@ export function generujNasobek(o: Obtiznost): Priklad {
 }
 
 export function generujDelitel(o: Obtiznost): Priklad {
+  if (randomInt(0, 99) < 28) {
+    return generujVsechnaDělitele(o);
+  }
   if (o === "lehka") {
     const x = randomInt(4, 30);
     const p = pocetDelitelu(x);
@@ -144,7 +175,145 @@ function delitelne10(n: number): boolean {
   return n % 10 === 0;
 }
 
+/**
+ * Doplň jednu chybějící číslici (hvězdička) tak, aby číslo bylo dělitelné daným dělitelem.
+ */
+export function generujDoplneniCislice(
+  o: Obtiznost,
+  divisor: 2 | 3 | 4 | 5 | 8 | 9 | 10,
+): Priklad | null {
+  const len =
+    o === "lehka" ? randomInt(3, 4) : o === "stredni" ? randomInt(4, 5) : randomInt(4, 6);
+  for (let attempt = 0; attempt < 120; attempt++) {
+    const digits: number[] = [randomInt(1, 9)];
+    for (let i = 1; i < len; i++) digits.push(randomInt(0, 9));
+    const hole = randomInt(0, len - 1);
+    const candidates: number[] = [];
+    for (let d = 0; d <= 9; d++) {
+      const copy = [...digits];
+      copy[hole] = d;
+      const val = Number(copy.join(""));
+      if (val % divisor === 0) candidates.push(d);
+    }
+    if (candidates.length === 0) continue;
+    const dispSpaced = digits
+      .map((dig, i) => (i === hole ? "*" : String(dig)))
+      .join(" ");
+    const sumKnown = digits.reduce((s, dig, i) => s + (i === hole ? 0 : dig), 0);
+    const odp = [...new Set(candidates)].sort((a, b) => a - b).join(", ");
+    let vysv = "";
+    if (divisor === 2) {
+      vysv = `Sudé číslo končí 0, 2, 4, 6 nebo 8 — na místě * mohou být číslice: ${odp}.`;
+    } else if (divisor === 5) {
+      vysv = `Dělitelnost pěti: poslední číslice je 0 nebo 5.`;
+    } else if (divisor === 10) {
+      vysv = `Dělitelnost deseti: poslední číslice musí být 0.`;
+    } else if (divisor === 3) {
+      vysv = `Součet číslic musí dělit 3. Součet známých číslic (kde není *) je ${sumKnown}.`;
+    } else if (divisor === 9) {
+      vysv = `Součet číslic musí dělit 9. Součet známých číslic je ${sumKnown}.`;
+    } else if (divisor === 4) {
+      vysv = `Dvojice posledních číslic (s doplněnou *) musí tvořit číslo dělitelné 4.`;
+    } else {
+      vysv = `Trojice posledních číslic musí dávat číslo dělitelné 8.`;
+    }
+    const zadani = `Jakou číslici můžeš doplnit místo * ? Číslo zapsané jako ${dispSpaced} (bez mezer) má být dělitelné ${divisor}. Napiš všechna řešení oddělená čárkou (např. 1, 4, 7).`;
+    return doplneni(
+      zadani,
+      odp,
+      vysv,
+      "Tip: Dosad číslice 0–9 a ověř dělením nebo znaky dělitelnosti.",
+    );
+  }
+  return null;
+}
+
+/** Test série: u čísla vyber všechny dělitele z dané množiny. */
+export function generujTestSerie(
+  o: Obtiznost,
+  deliteleKTestu: number[],
+): Priklad {
+  const maxN = o === "lehka" ? 100 : o === "stredni" ? 500 : 1000;
+  const n = randomInt(12, maxN);
+  const moznosti = deliteleKTestu.map(String);
+  const spravne = deliteleKTestu
+    .filter((d) => n % d === 0)
+    .map(String)
+    .sort((a, b) => Number(a) - Number(b));
+  const odpoved = spravne.join(", ");
+  const vysvetleni = deliteleKTestu
+    .map((d) => {
+      const ok = n % d === 0;
+      return `${d}: ${ok ? `ano (${n} je dělitelné ${d})` : "ne"}`;
+    })
+    .join(" | ");
+  const zadani = `Číslo ${n} — vyber všechny čísla z nabídky, které jsou jeho děliteli: ${moznosti.join(", ")}. (Klikni na všechna platná a potvrď.)`;
+  return multiVyber(zadani, odpoved, vysvetleni, moznosti, spravne);
+}
+
+/** Všechny dělitele jednoho čísla nebo společné dělitele dvojice (těžká). */
+export function generujVsechnaDělitele(o: Obtiznost): Priklad {
+  if (o === "lehka") {
+    const pool = [16, 18, 24, 28, 30, 32, 36];
+    const x = pool[randomInt(0, pool.length - 1)]!;
+    const d = delitele(x);
+    return doplneni(
+      `Vyjmenuj všechny dělitele čísla ${x} (od nejmenšího, oddělte čárkou).`,
+      d.join(", "),
+      `Hledej páry: každý dělitel jde „do páru“ s číslem ${x}/d. Dělitelé: ${d.join(", ")}.`,
+      `Tip: Začni u 1 a ${x}, pak zkoušej 2, 3, … až zhruba do √${x}.`,
+    );
+  }
+  if (o === "stredni") {
+    const x = randomInt(36, 72);
+    const d = delitele(x);
+    return doplneni(
+      `Vyjmenuj všechny dělitele čísla ${x} (od nejmenšího, oddělte čárkou).`,
+      d.join(", "),
+      `Úplný seznam: ${d.join(", ")} (je jich ${d.length}).`,
+    );
+  }
+  const a = randomInt(24, 72);
+  const b = randomInt(24, 72);
+  const g = gcd(a, b);
+  const spolecne = delitele(g);
+  return doplneni(
+    `Jaké jsou VŠECHNY společné dělitele čísel ${a} a ${b}? (od nejmenšího, čárky.)`,
+    spolecne.join(", "),
+    `NSD(${a}, ${b}) = ${g}. Společné dělitele obou čísel jsou právě všichni dělitelé ${g}: ${spolecne.join(", ")}.`,
+  );
+}
+
+function generujRozkladSOveřením(o: Obtiznost): Priklad {
+  const n =
+    o === "lehka"
+      ? randomInt(12, 50)
+      : o === "stredni"
+        ? randomInt(50, 150)
+        : randomInt(150, 500);
+  const f = faktorySeznam(n);
+  const seznam = f.join(", ");
+  const soucin = f.reduce((a, b) => a * b, 1);
+  const rText = prvociselnyRozklad(n);
+  const ov = f.map(String).join(" × ");
+  return doplneni(
+    `Rozlož číslo ${n} na součin prvočísel (čárky, od nejmenšího) a ověř součinem.`,
+    seznam,
+    `Rozklad: ${rText}. Ověření: ${ov} = ${soucin} ${soucin === n ? "✓" : ""}.`,
+    "Tip: Zkus nejdřív dělit 2, pak 3, 5, 7, … dokud to jde.",
+  );
+}
+
 export function generujZnaky102(o: Obtiznost): Priklad {
+  const rot = randomInt(0, 99);
+  if (rot < 28) {
+    const div = randomInt(0, 1) === 0 ? 2 : 5;
+    const d = generujDoplneniCislice(o, div);
+    if (d) return d;
+  }
+  if (rot < 48) {
+    return generujTestSerie(o, [2, 3, 5, 10]);
+  }
   const n =
     o === "lehka"
       ? randomInt(10, 120)
@@ -183,6 +352,15 @@ function delitelne8(n: number): boolean {
 }
 
 export function generujZnaky48(o: Obtiznost): Priklad {
+  const rot = randomInt(0, 99);
+  if (rot < 28) {
+    const div = randomInt(0, 1) === 1 ? 8 : 4;
+    const d = generujDoplneniCislice(o, div);
+    if (d) return d;
+  }
+  if (rot < 48) {
+    return generujTestSerie(o, [2, 4, 8]);
+  }
   const n =
     o === "lehka"
       ? randomInt(20, 200)
@@ -212,6 +390,15 @@ function delitelne9(n: number): boolean {
 }
 
 export function generujZnaky93(o: Obtiznost): Priklad {
+  const rot = randomInt(0, 99);
+  if (rot < 28) {
+    const div = randomInt(0, 1) === 1 ? 9 : 3;
+    const d = generujDoplneniCislice(o, div);
+    if (d) return d;
+  }
+  if (rot < 48) {
+    return generujTestSerie(o, [2, 3, 6, 9]);
+  }
   const n =
     o === "lehka"
       ? randomInt(30, 200)
@@ -252,6 +439,9 @@ export function generujPrvocisla(o: Obtiznost): Priklad {
 }
 
 export function generujRozklad(o: Obtiznost): Priklad {
+  if (randomInt(0, 99) < 42) {
+    return generujRozkladSOveřením(o);
+  }
   const n =
     o === "lehka"
       ? randomInt(12, 60)
@@ -268,6 +458,19 @@ export function generujRozklad(o: Obtiznost): Priklad {
 }
 
 export function generujSpolecnyDelitel(o: Obtiznost): Priklad {
+  if (o !== "lehka" && randomInt(0, 99) < 55) {
+    const p = [3, 5, 7][randomInt(0, 2)]!;
+    const maxK = o === "stredni" ? 10 : 18;
+    const a = p * randomInt(2, maxK);
+    const b = p * randomInt(2, maxK);
+    const c = p * randomInt(2, maxK);
+    const g3 = gcd3(a, b, c);
+    return vypocet(
+      `Urči největšího společného dělitele čísel ${a}, ${b} a ${c}.`,
+      g3,
+      `NSD(${a}, ${b}, ${c}) = ${g3}. Všechna tři čísla sdílejí alespoň faktor ${p} (nebo větší společný rozklad).`,
+    );
+  }
   const a =
     o === "lehka"
       ? randomInt(6, 40)
@@ -312,6 +515,31 @@ export function generujSoudelaNesoudela(o: Obtiznost): Priklad {
 }
 
 export function generujSpolecnyNasobek(o: Obtiznost): Priklad {
+  if (o !== "lehka" && randomInt(0, 99) < 55) {
+    if (o === "stredni") {
+      const pool = [
+        [2, 3, 6],
+        [2, 4, 8],
+        [3, 4, 6],
+      ];
+      const [a, b, c] = pool[randomInt(0, pool.length - 1)]!;
+      const l = lcm3(a, b, c);
+      return vypocet(
+        `Jaký je nejmenší společný násobek čísel ${a}, ${b} a ${c}?`,
+        l,
+        `NSN(${a}, ${b}, ${c}) = ${l}.`,
+      );
+    }
+    const a = randomInt(3, 12);
+    const b = randomInt(3, 12);
+    const c = randomInt(3, 12);
+    const l = lcm3(a, b, c);
+    return vypocet(
+      `Jaký je nejmenší společný násobek čísel ${a}, ${b} a ${c}?`,
+      l,
+      `NSN(${a}, ${b}, ${c}) = ${l}.`,
+    );
+  }
   const a =
     o === "lehka"
       ? randomInt(3, 12)
@@ -497,6 +725,8 @@ export function generujSouhrnna(o: Obtiznost): Priklad {
     () => generujZnaky93(o),
     () => generujSpolecnyDelitel(o),
     () => generujSpolecnyNasobek(o),
+    () => generujTestSerie(o, [2, 3, 5, 10]),
+    () => generujDoplneniCislice(o, randomInt(0, 1) === 0 ? 3 : 9) ?? generujZnaky93(o),
   ];
   return pool[randomInt(0, pool.length - 1)]!();
 }

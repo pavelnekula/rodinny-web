@@ -212,3 +212,15 @@ body {
 .animate-fyzika-shake {
   animation: fyzika-shake 0.45s ease-in-out;
 }
+
+/* Pětiminutovky — skrýt šipky u type="number" */
+.petiminutovky-num-input::-webkit-outer-spin-button,
+.petiminutovky-num-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.petiminutovky-num-input {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
