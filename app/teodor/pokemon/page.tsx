@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { isSupabaseConfigured, supabase } from "@/lib/supabase";
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import type { PokemonCardRow } from "@/lib/pokemonCards";
 import { PokemonGrid } from "./components/PokemonGrid";
 import { PokemonAddSection } from "./components/PokemonAddSection";
@@ -41,7 +41,7 @@ export default async function TeodorPokemonPage() {
     );
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from("pokemon_cards")
     .select("*")
     .order("created_at", { ascending: false });

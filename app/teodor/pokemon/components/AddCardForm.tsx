@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import {
   POKEMON_CONDITIONS,
   type PokemonCondition,
@@ -49,8 +49,13 @@ export function AddCardForm({ onSuccess, onCancel }: Props) {
       price_czk = n;
     }
 
+    if (!isSupabaseConfigured) {
+      setError("Supabase není nakonfigurován.");
+      return;
+    }
+
     setSubmitting(true);
-    const { error: insertError } = await supabase.from("pokemon_cards").insert({
+    const { error: insertError } = await getSupabase().from("pokemon_cards").insert({
       name: trimmedName,
       card_set: trimmedSet,
       year,
