@@ -26,6 +26,11 @@ const TOTAL_MS = 5 * 60 * 1000;
 
 type Phase = "intro" | "play" | "done";
 
+type WrongEntry = {
+  ex: MathExample;
+  userAnswer: number;
+};
+
 const MOTIVATION = [
   "Skvěle! Jedeš jako stroj! 🔥",
   "Wow, to je rychlost! ⚡",
@@ -66,6 +71,7 @@ export function PetiminutovkyGame() {
   const [flash, setFlash] = useState<"ok" | "bad" | null>(null);
   const [blocking, setBlocking] = useState(false);
   const [motivation, setMotivation] = useState<string | null>(null);
+  const [wrongLog, setWrongLog] = useState<WrongEntry[]>([]);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const finishedRef = useRef(false);
@@ -86,6 +92,7 @@ export function PetiminutovkyGame() {
     setContestTyp(t);
     contestTypRef.current = t;
     ringRef.current = new PetiminutovkaRing20();
+    setWrongLog([]);
     setCorrect(0);
     setWrong(0);
     setPaused(false);
@@ -174,6 +181,7 @@ export function PetiminutovkyGame() {
       playPetiminutovkaWrong();
       setFlash("bad");
       setWrong((w) => w + 1);
+      setWrongLog((log) => [...log, { ex: problem, userAnswer: n }]);
       setBlocking(true);
       window.setTimeout(() => {
         setFlash(null);
@@ -191,6 +199,10 @@ export function PetiminutovkyGame() {
     correct,
     nextProblem,
   ]);
+
+  const totalAttempts = correct + wrong;
+  const accPct =
+    totalAttempts > 0 ? Math.round((correct / totalAttempts) * 1000) / 10 : 0;
 
   const togglePause = () => {
     if (phase !== "play") return;
@@ -244,8 +256,8 @@ export function PetiminutovkyGame() {
               Pětiminutovky ⏱️
             </h1>
             <p className="mt-2 text-lg text-[#6b7280] md:text-xl">
-              Pět minut klidného počítání — bez času a skóre na obrazovce, ať tě
-              nic neruší od soustředění.
+              Pět minut bez času na obrazovce — po skončení kola uvidíš výsledky
+              a příklady, u kterých to nevyšlo.
             </p>
           </header>
         )}
@@ -490,13 +502,58 @@ export function PetiminutovkyGame() {
         {phase === "done" && contestTyp && (
           <div className="space-y-8">
             <section className="rounded-3xl border border-[#e5e7eb] bg-[#fafafa] p-8 text-center shadow-sm">
-              <h2 className="text-3xl font-bold text-emerald-600">
-                Konec kola — díky za soustředění
+              <h2 className="text-3xl font-bold text-[#1a1a1a]">
+                Konec kola — výsledky
               </h2>
-              <p className="mx-auto mt-4 max-w-lg text-lg text-[#6b7280]">
-                Bez čísel a hodnocení na obrazovce. Kdybys chtěla přehled
-                uložený v prohlížeči, jsou k dispozici statistiky.
-              </p>
+              <ul className="mx-auto mt-6 max-w-md space-y-2 text-left text-lg">
+                <li>
+                  Příkladů celkem:{" "}
+                  <strong className="tabular-nums">{totalAttempts}</strong>
+                </li>
+                <li className="text-emerald-600">
+                  Správně:{" "}
+                  <strong className="tabular-nums">{correct}</strong>
+                </li>
+                <li className="text-rose-600">
+                  Špatně: <strong className="tabular-nums">{wrong}</strong>
+                </li>
+                <li>
+                  Úspěšnost:{" "}
+                  <strong className="tabular-nums">
+                    {totalAttempts > 0 ? `${accPct} %` : "—"}
+                  </strong>
+                </li>
+              </ul>
+            </section>
+
+            <section className="rounded-3xl border border-[#e5e7eb] bg-[#ffffff] p-6 shadow-sm sm:p-8">
+              <h3 className="text-xl font-semibold text-[#1a1a1a]">
+                Příklady, které nebyly správně
+              </h3>
+              {wrongLog.length === 0 ? (
+                <p className="mt-4 text-[#6b7280]">
+                  Žádné — všechny zapsané odpovědi v téhle sérii sedí. Skvělá
+                  práce.
+                </p>
+              ) : (
+                <ul className="mt-4 list-inside list-disc space-y-3 text-left text-base text-[#1a1a1a]">
+                  {wrongLog.map((w, i) => (
+                    <li key={`${w.ex.display}-${w.userAnswer}-${i}`}>
+                      <span className="font-semibold">{w.ex.display}</span>
+                      {" — "}
+                      napsala jsi{" "}
+                      <span className="tabular-nums text-rose-600">
+                        {w.userAnswer}
+                      </span>
+                      , správně je{" "}
+                      <span className="tabular-nums text-emerald-600">
+                        {w.ex.answer}
+                      </span>
+                      .
+                    </li>
+                  ))}
+                </ul>
+              )}
             </section>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
@@ -505,6 +562,7 @@ export function PetiminutovkyGame() {
                 onClick={() => {
                   deadlineRef.current = null;
                   finishedRef.current = false;
+                  setWrongLog([]);
                   setPhase("intro");
                   setContestTyp(null);
                   setProblem(null);

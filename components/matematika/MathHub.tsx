@@ -162,7 +162,7 @@ function buildCards(
     {
       href: "/matematika/petiminutovky",
       title: "Pětiminutovky",
-      desc: "Pět minut počítání bez času a skóre na obrazovce — násobilka, dělení, mix.",
+      desc: "Pět minut bez času během hry — po kole přehled a špatné příklady; násobilka, dělení, mix.",
       emoji: "⏱️",
       stars: s6,
       hideStars: true,
