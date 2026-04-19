@@ -117,7 +117,13 @@ export function starsFromBleskovky(count: number): number {
 
 // ——— Pětiminutovky ———
 
-export type PetiminutovkaTyp = "nasobilka" | "deleni" | "scitani_odcitani" | "all";
+export type PetiminutovkaTyp =
+  | "nasobilka"
+  | "deleni"
+  | "scitani_odcitani"
+  | "scitani_odcitani_do100"
+  | "chybejici_cislo"
+  | "all";
 
 export type PetiminutovkaZaznam = {
   date: string;

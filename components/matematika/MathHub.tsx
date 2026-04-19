@@ -39,6 +39,8 @@ export function MathHub() {
       getPetiminutovkaRecord("nasobilka") ?? 0,
       getPetiminutovkaRecord("deleni") ?? 0,
       getPetiminutovkaRecord("scitani_odcitani") ?? 0,
+      getPetiminutovkaRecord("scitani_odcitani_do100") ?? 0,
+      getPetiminutovkaRecord("chybejici_cislo") ?? 0,
       getPetiminutovkaRecord("all") ?? 0,
     );
     setCards(

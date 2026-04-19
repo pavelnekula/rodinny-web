@@ -19,6 +19,10 @@ function typLabel(t: PetiminutovkaRunLog["typ"]): string {
       return ":";
     case "scitani_odcitani":
       return "±10";
+    case "scitani_odcitani_do100":
+      return "±100";
+    case "chybejici_cislo":
+      return "?č";
     case "all":
       return "Vše";
     default:

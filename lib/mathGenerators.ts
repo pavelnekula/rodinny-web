@@ -380,7 +380,15 @@ export function generateMathCardDeck(diff: CardDifficulty): MathCardFace[] {
 
 // ——— Pětiminutovky ———
 
-export type MathExampleCategory = "nasobilka" | "deleni" | "scitani" | "odcitani";
+export type MathExampleCategory =
+  | "nasobilka"
+  | "deleni"
+  | "scitani"
+  | "odcitani"
+  | "scitani100"
+  | "odcitani100"
+  | "chybejici_scitani"
+  | "chybejici_odcitani";
 
 export type MathExampleMissing = "result" | "first" | "second";
 
@@ -533,6 +541,142 @@ export function generateScitaniPo10(max: number): MathExample {
   };
 }
 
+/** Typ E — sčítání do 100 (a, b ∈ 1–99, součet ≤ 100). */
+export function generateScitaniDo100(): MathExample {
+  for (let t = 0; t < 120; t++) {
+    const a = randomInt(1, 99);
+    const b = randomInt(1, 99);
+    if (a + b <= 100) {
+      return {
+        display: `${a} + ${b} = ${BLANK}`,
+        answer: a + b,
+        category: "scitani100",
+        a,
+        b,
+        operator: "+",
+        missingPosition: "result",
+      };
+    }
+  }
+  return {
+    display: `50 + 50 = ${BLANK}`,
+    answer: 100,
+    category: "scitani100",
+    a: 50,
+    b: 50,
+    operator: "+",
+    missingPosition: "result",
+  };
+}
+
+/** Typ F — odečítání do 100 (a, b ∈ 1–99, rozdíl ≥ 0). */
+export function generateOdcitaniDo100(): MathExample {
+  for (let t = 0; t < 120; t++) {
+    const a = randomInt(1, 99);
+    const b = randomInt(1, 99);
+    if (a - b >= 0) {
+      return {
+        display: `${a} − ${b} = ${BLANK}`,
+        answer: a - b,
+        category: "odcitani100",
+        a,
+        b,
+        operator: "−",
+        missingPosition: "result",
+      };
+    }
+  }
+  return {
+    display: `99 − 1 = ${BLANK}`,
+    answer: 98,
+    category: "odcitani100",
+    a: 99,
+    b: 1,
+    operator: "−",
+    missingPosition: "result",
+  };
+}
+
+/** Typ G — chybějící číslo ve sčítání (a, b ∈ 1–49, c = a + b ≤ 98). */
+export function generateChybejiciScitani(
+  variant: "first" | "second" | "result",
+): MathExample {
+  const a = randomInt(1, 49);
+  const b = randomInt(1, 49);
+  const c = a + b;
+  if (variant === "result") {
+    return {
+      display: `${a} + ${b} = ${BLANK}`,
+      answer: c,
+      category: "chybejici_scitani",
+      a,
+      b,
+      operator: "+",
+      missingPosition: "result",
+    };
+  }
+  if (variant === "first") {
+    return {
+      display: `${BLANK} + ${b} = ${c}`,
+      answer: a,
+      category: "chybejici_scitani",
+      a,
+      b,
+      operator: "+",
+      missingPosition: "first",
+    };
+  }
+  return {
+    display: `${a} + ${BLANK} = ${c}`,
+    answer: b,
+    category: "chybejici_scitani",
+    a,
+    b,
+    operator: "+",
+    missingPosition: "second",
+  };
+}
+
+/** Typ H — chybějící číslo v odečítání (b, c ∈ 1–49, a = b + c ≤ 98). */
+export function generateChybejiciOdcitani(
+  variant: "first" | "second" | "result",
+): MathExample {
+  const b = randomInt(1, 49);
+  const c = randomInt(1, 49);
+  const a = b + c;
+  if (variant === "result") {
+    return {
+      display: `${a} − ${b} = ${BLANK}`,
+      answer: c,
+      category: "chybejici_odcitani",
+      a,
+      b,
+      operator: "−",
+      missingPosition: "result",
+    };
+  }
+  if (variant === "first") {
+    return {
+      display: `${BLANK} − ${b} = ${c}`,
+      answer: a,
+      category: "chybejici_odcitani",
+      a,
+      b,
+      operator: "−",
+      missingPosition: "first",
+    };
+  }
+  return {
+    display: `${a} − ${BLANK} = ${c}`,
+    answer: b,
+    category: "chybejici_odcitani",
+    a,
+    b,
+    operator: "−",
+    missingPosition: "second",
+  };
+}
+
 export function generateOdcitaniPo10(max: number): MathExample {
   const step = 10;
   const maxUnit = Math.floor(max / step);
@@ -568,7 +712,16 @@ export type PetiminutovkaMixedTyp =
   | "nasobilka"
   | "deleni"
   | "scitani_odcitani"
+  | "scitani_odcitani_do100"
+  | "chybejici_cislo"
   | "all";
+
+function randomChybejiciVariant(): "first" | "second" | "result" {
+  const r = Math.random();
+  if (r < 1 / 3) return "first";
+  if (r < 2 / 3) return "second";
+  return "result";
+}
 
 function tryPush(
   ring: PetiminutovkaRing20,
@@ -613,15 +766,43 @@ export function generateMixed(
         : generateOdcitaniPo10(1000),
     );
   }
+  if (typ === "scitani_odcitani_do100") {
+    return generateOneWithRing(ring, () =>
+      Math.random() < 0.5 ? generateScitaniDo100() : generateOdcitaniDo100(),
+    );
+  }
+  if (typ === "chybejici_cislo") {
+    return generateOneWithRing(ring, () =>
+      Math.random() < 0.5
+        ? generateChybejiciScitani(randomChybejiciVariant())
+        : generateChybejiciOdcitani(randomChybejiciVariant()),
+    );
+  }
   const r = Math.random();
-  if (r < 0.25) {
+  if (r < 0.18) {
     return generateOneWithRing(ring, () => generateNasobilka(onlyResult));
   }
-  if (r < 0.5) {
+  if (r < 0.36) {
     return generateOneWithRing(ring, () => generateDeleni(onlyResult));
   }
-  if (r < 0.75) {
+  if (r < 0.5) {
     return generateOneWithRing(ring, () => generateScitaniPo10(1000));
   }
-  return generateOneWithRing(ring, () => generateOdcitaniPo10(1000));
+  if (r < 0.64) {
+    return generateOneWithRing(ring, () => generateOdcitaniPo10(1000));
+  }
+  if (r < 0.73) {
+    return generateOneWithRing(ring, () => generateScitaniDo100());
+  }
+  if (r < 0.82) {
+    return generateOneWithRing(ring, () => generateOdcitaniDo100());
+  }
+  if (r < 0.91) {
+    return generateOneWithRing(ring, () =>
+      generateChybejiciScitani(randomChybejiciVariant()),
+    );
+  }
+  return generateOneWithRing(ring, () =>
+    generateChybejiciOdcitani(randomChybejiciVariant()),
+  );
 }

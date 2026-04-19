@@ -89,6 +89,42 @@ function topMistakes(
     .slice(0, limit);
 }
 
+function topMistakesForCategories(
+  list: WrongEntry[],
+  cats: readonly MathExample["category"][],
+  limit: number,
+): { count: number; sample: WrongEntry }[] {
+  const m = new Map<string, { count: number; sample: WrongEntry }>();
+  for (const w of list) {
+    if (!cats.includes(w.ex.category)) continue;
+    const key = `${w.ex.display}|${w.ex.answer}`;
+    const prev = m.get(key);
+    if (prev) prev.count += 1;
+    else m.set(key, { count: 1, sample: w });
+  }
+  return [...m.values()]
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit);
+}
+
+function topMistakesFiltered(
+  list: WrongEntry[],
+  pred: (w: WrongEntry) => boolean,
+  limit: number,
+): { count: number; sample: WrongEntry }[] {
+  const m = new Map<string, { count: number; sample: WrongEntry }>();
+  for (const w of list) {
+    if (!pred(w)) continue;
+    const key = `${w.ex.display}|${w.ex.answer}`;
+    const prev = m.get(key);
+    if (prev) prev.count += 1;
+    else m.set(key, { count: 1, sample: w });
+  }
+  return [...m.values()]
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit);
+}
+
 function mistakeLine(w: WrongEntry): string {
   const { ex, userAnswer } = w;
   return `${ex.display} ❌ (ty napsala ${userAnswer}, správně je ${ex.answer})`;
@@ -221,6 +257,9 @@ export function PetiminutovkyGame() {
   const mixedTyp = useMemo((): PetiminutovkaMixedTyp | null => {
     if (!contestTyp) return null;
     if (contestTyp === "scitani_odcitani") return "scitani_odcitani";
+    if (contestTyp === "scitani_odcitani_do100")
+      return "scitani_odcitani_do100";
+    if (contestTyp === "chybejici_cislo") return "chybejici_cislo";
     if (contestTyp === "nasobilka") return "nasobilka";
     if (contestTyp === "deleni") return "deleni";
     return "all";
@@ -252,12 +291,16 @@ export function PetiminutovkyGame() {
     nasobilka: null,
     deleni: null,
     scitani_odcitani: null,
+    scitani_odcitani_do100: null,
+    chybejici_cislo: null,
     all: null,
   });
   const [lastFive, setLastFive] = useState<Record<PetiminutovkaTyp, PetiminutovkaZaznam[]>>({
     nasobilka: [],
     deleni: [],
     scitani_odcitani: [],
+    scitani_odcitani_do100: [],
+    chybejici_cislo: [],
     all: [],
   });
 
@@ -274,22 +317,20 @@ export function PetiminutovkyGame() {
   wrongRef.current = wrong;
 
   const refreshStorage = useCallback(() => {
-    const t: PetiminutovkaTyp[] = [
-      "nasobilka",
-      "deleni",
-      "scitani_odcitani",
-      "all",
-    ];
     setRecords({
       nasobilka: getPetiminutovkaRecord("nasobilka"),
       deleni: getPetiminutovkaRecord("deleni"),
       scitani_odcitani: getPetiminutovkaRecord("scitani_odcitani"),
+      scitani_odcitani_do100: getPetiminutovkaRecord("scitani_odcitani_do100"),
+      chybejici_cislo: getPetiminutovkaRecord("chybejici_cislo"),
       all: getPetiminutovkaRecord("all"),
     });
     setLastFive({
       nasobilka: getPetiminutovkaLastFive("nasobilka"),
       deleni: getPetiminutovkaLastFive("deleni"),
       scitani_odcitani: getPetiminutovkaLastFive("scitani_odcitani"),
+      scitani_odcitani_do100: getPetiminutovkaLastFive("scitani_odcitani_do100"),
+      chybejici_cislo: getPetiminutovkaLastFive("chybejici_cislo"),
       all: getPetiminutovkaLastFive("all"),
     });
   }, []);
@@ -326,11 +367,15 @@ export function PetiminutovkyGame() {
     const mt: PetiminutovkaMixedTyp =
       t === "scitani_odcitani"
         ? "scitani_odcitani"
-        : t === "nasobilka"
-          ? "nasobilka"
-          : t === "deleni"
-            ? "deleni"
-            : "all";
+        : t === "scitani_odcitani_do100"
+          ? "scitani_odcitani_do100"
+          : t === "chybejici_cislo"
+            ? "chybejici_cislo"
+            : t === "nasobilka"
+              ? "nasobilka"
+              : t === "deleni"
+                ? "deleni"
+                : "all";
     const ex = generateMixed(mt, ringRef.current);
     setProblem(ex);
     setInput("");
@@ -498,7 +543,7 @@ export function PetiminutovkyGame() {
 
         {phase === "intro" && (
           <div className="space-y-8 md:space-y-10">
-            <div className="grid gap-4 md:gap-6 sm:grid-cols-2">
+            <div className="grid gap-4 md:gap-6 sm:grid-cols-2 xl:grid-cols-3">
               <button
                 type="button"
                 onClick={() => setContestTyp("nasobilka")}
@@ -583,6 +628,60 @@ export function PetiminutovkyGame() {
 
               <button
                 type="button"
+                onClick={() => setContestTyp("scitani_odcitani_do100")}
+                className={`rounded-2xl border-2 p-6 text-left shadow-sm transition focus-visible:outline focus-visible:ring-2 focus-visible:ring-offset-2 md:min-h-[180px] md:p-8 ${
+                  contestTyp === "scitani_odcitani_do100"
+                    ? "border-[#0A84FF] bg-sky-50 ring-2 ring-[#0A84FF]"
+                    : "border-[#e5e7eb] bg-[#ffffff] hover:border-sky-200"
+                }`}
+                aria-pressed={contestTyp === "scitani_odcitani_do100"}
+              >
+                <span className="text-2xl" aria-hidden>
+                  🔵
+                </span>
+                <span className="mt-2 block text-xl font-bold md:text-2xl">
+                  Sčítání a odečítání do 100
+                </span>
+                <p className="mt-1 text-sm text-[#6b7280] md:text-base">
+                  Klasické příklady a + b a a − b, čísla do 100.
+                </p>
+                <p className="mt-3 text-sm font-medium" style={{ color: "#0A84FF" }}>
+                  Rekord:{" "}
+                  {records.scitani_odcitani_do100 != null
+                    ? `${records.scitani_odcitani_do100} správně`
+                    : "—"}
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setContestTyp("chybejici_cislo")}
+                className={`rounded-2xl border-2 p-6 text-left shadow-sm transition focus-visible:outline focus-visible:ring-2 focus-visible:ring-offset-2 md:min-h-[180px] md:p-8 ${
+                  contestTyp === "chybejici_cislo"
+                    ? "border-[#BF5AF2] bg-violet-50 ring-2 ring-[#BF5AF2]"
+                    : "border-[#e5e7eb] bg-[#ffffff] hover:border-violet-200"
+                }`}
+                aria-pressed={contestTyp === "chybejici_cislo"}
+              >
+                <span className="text-2xl" aria-hidden>
+                  🟣
+                </span>
+                <span className="mt-2 block text-xl font-bold md:text-2xl">
+                  Chybějící číslo
+                </span>
+                <p className="mt-1 text-sm text-[#6b7280] md:text-base">
+                  Znáš výsledek — doplň chybějící číslo (sčítání i odečítání).
+                </p>
+                <p className="mt-3 text-sm font-medium" style={{ color: "#BF5AF2" }}>
+                  Rekord:{" "}
+                  {records.chybejici_cislo != null
+                    ? `${records.chybejici_cislo} správně`
+                    : "—"}
+                </p>
+              </button>
+
+              <button
+                type="button"
                 onClick={() => setContestTyp("all")}
                 className={`rounded-2xl border-2 p-6 text-left shadow-sm transition focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2 md:min-h-[180px] md:p-8 ${
                   contestTyp === "all"
@@ -598,8 +697,8 @@ export function PetiminutovkyGame() {
                   Vše dohromady
                 </span>
                 <p className="mt-1 text-sm text-[#6b7280] md:text-base">
-                  Mix: násobilka a dělení (plné zadání + výsledek), sčítání a
-                  odečítání po desítkách.
+                  Mix: násobilka, dělení, ± po desítkách, sčítání a odečítání do
+                  100, chybějící číslo u + a −.
                 </p>
                 <p className="mt-3 text-sm font-medium text-[#3b82f6]">
                   Rekord:{" "}
@@ -609,7 +708,7 @@ export function PetiminutovkyGame() {
             </div>
 
             <div className="overflow-x-auto rounded-2xl border border-[#e5e7eb] shadow-sm">
-              <table className="w-full min-w-[640px] text-left text-sm">
+              <table className="w-full min-w-[880px] text-left text-sm">
                 <caption className="border-b border-[#e5e7eb] bg-[#fafafa] px-4 py-3 text-center font-medium text-[#1a1a1a]">
                   Posledních 5 výsledků podle typu
                 </caption>
@@ -626,6 +725,8 @@ export function PetiminutovkyGame() {
                       ["nasobilka", "Násobilka ×"],
                       ["deleni", "Dělení :"],
                       ["scitani_odcitani", "± po 10"],
+                      ["scitani_odcitani_do100", "± do 100"],
+                      ["chybejici_cislo", "Chyb. číslo"],
                       ["all", "Vše"],
                     ] as const
                   ).flatMap(([key, label]) => {
@@ -880,7 +981,7 @@ export function PetiminutovkyGame() {
               <h3 className="mb-4 text-xl font-semibold text-[#1a1a1a]">
                 Analýza chyb
               </h3>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 <MistakeCard
                   title="Násobilka ×"
                   emoji="🟡"
@@ -921,6 +1022,19 @@ export function PetiminutovkyGame() {
                   )}
                   empty="Odečítání zvládáš perfektně! ✅"
                 />
+                <MistakeCard
+                  title="Sčítání a odečítání do 100"
+                  emoji="🔵"
+                  border="border-sky-300"
+                  bg="bg-sky-50"
+                  lines={topMistakesForCategories(
+                    wrongLog,
+                    ["scitani100", "odcitani100"],
+                    5,
+                  ).map((x) => mistakeLine(x.sample))}
+                  empty="Sčítání do 100 zvládáš perfektně! ✅"
+                />
+                <ChybejiciMistakesCard wrongLog={wrongLog} />
               </div>
             </section>
 
@@ -969,6 +1083,102 @@ export function PetiminutovkyGame() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function ChybejiciMistakesCard({ wrongLog }: { wrongLog: WrongEntry[] }) {
+  const chybCats = (w: WrongEntry) =>
+    w.ex.category === "chybejici_scitani" ||
+    w.ex.category === "chybejici_odcitani";
+
+  const anyChyb = wrongLog.filter(chybCats);
+  const firstLines = topMistakesFiltered(
+    wrongLog,
+    (w) => chybCats(w) && w.ex.missingPosition === "first",
+    5,
+  ).map((x) => mistakeLine(x.sample));
+  const secondLines = topMistakesFiltered(
+    wrongLog,
+    (w) => chybCats(w) && w.ex.missingPosition === "second",
+    5,
+  ).map((x) => mistakeLine(x.sample));
+  const resultLines = topMistakesFiltered(
+    wrongLog,
+    (w) => chybCats(w) && w.ex.missingPosition === "result",
+    4,
+  ).map((x) => mistakeLine(x.sample));
+  const showH1Tip = wrongLog.some(
+    (w) =>
+      w.ex.category === "chybejici_odcitani" &&
+      w.ex.missingPosition === "first",
+  );
+
+  if (anyChyb.length === 0) {
+    return (
+      <div className="rounded-2xl border-2 border-[#BF5AF2] bg-violet-50 p-4 shadow-sm">
+        <h4 className="font-bold text-[#1a1a1a]">
+          <span aria-hidden>🟣</span> Chybějící číslo
+        </h4>
+        <p className="mt-3 text-sm text-[#6b7280]">
+          Chybějící číslo zvládáš perfektně! ✅
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-2xl border-2 border-[#BF5AF2] bg-violet-50 p-4 shadow-sm">
+      <h4 className="font-bold text-[#1a1a1a]">
+        <span aria-hidden>🟣</span> Chybějící číslo
+      </h4>
+      <div className="mt-3 space-y-4 text-sm text-[#1a1a1a]">
+        <div>
+          <p className="font-semibold text-[#6b7280]">
+            Chyběl první člen (___ na začátku)
+          </p>
+          {firstLines.length === 0 ? (
+            <p className="mt-1 text-[#6b7280]">Žádné takové chyby.</p>
+          ) : (
+            <ul className="mt-1 list-inside list-disc space-y-1">
+              {firstLines.map((l) => (
+                <li key={l}>{l}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div>
+          <p className="font-semibold text-[#6b7280]">
+            Chyběl druhý člen (___ uprostřed)
+          </p>
+          {secondLines.length === 0 ? (
+            <p className="mt-1 text-[#6b7280]">Žádné takové chyby.</p>
+          ) : (
+            <ul className="mt-1 list-inside list-disc space-y-1">
+              {secondLines.map((l) => (
+                <li key={l}>{l}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+        {resultLines.length > 0 ? (
+          <div>
+            <p className="font-semibold text-[#6b7280]">
+              Chyběl výsledek (___ za =)
+            </p>
+            <ul className="mt-1 list-inside list-disc space-y-1">
+              {resultLines.map((l) => (
+                <li key={l}>{l}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </div>
+      {showH1Tip ? (
+        <p className="mt-4 text-sm font-medium text-[#1a1a1a]">
+          💡 U chybějícího menšence zkus: výsledek + odečítané číslo = ?
+        </p>
+      ) : null}
     </div>
   );
 }
