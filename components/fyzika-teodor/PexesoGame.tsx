@@ -151,20 +151,20 @@ export function PexesoGame({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-300">
+      <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-app-subtle">
         <span>
           Tahy: <strong className="text-white">{moves}</strong> · Čas:{" "}
           <strong className="text-white">{seconds}</strong> s
         </span>
         {best ? (
-          <span className="text-cyan-400">
+          <span className="text-app-accent">
             Rekord: {best.moves} tahů / {(best.centiSecs / 100).toFixed(1)} s
           </span>
         ) : null}
         <button
           type="button"
           onClick={reset}
-          className="rounded-lg border border-slate-600 px-3 py-1 text-slate-200"
+          className="rounded-lg border border-slate-600 px-3 py-1 text-app-fg"
         >
           Znovu
         </button>
@@ -189,13 +189,13 @@ export function PexesoGame({
             ))}
           </div>
           <p className="relative text-xl font-bold text-white">Hotovo!</p>
-          <p className="relative mt-2 text-slate-300">
+          <p className="relative mt-2 text-app-subtle">
             Tahy: {moves} · Čas: {seconds} s
           </p>
           <p className="relative mt-3 text-4xl" aria-label="Hvězdy">
             {"⭐".repeat(starRating(moves))}
           </p>
-          <p className="relative mt-2 text-xs text-slate-500">
+          <p className="relative mt-2 text-xs text-app-muted">
             3⭐ &lt;18 tahů · 2⭐ &lt;25 tahů · 1⭐ dokončeno
           </p>
         </div>
@@ -218,7 +218,7 @@ export function PexesoGame({
                   className={`fyzika-flip-inner block h-full w-full ${open ? "is-flipped" : ""}`}
                 >
                   <span
-                    className={`fyzika-flip-face fyzika-flip-front flex h-full items-center justify-center rounded-xl border-2 text-lg font-bold text-slate-200 ${cardBackClass}`}
+                    className={`fyzika-flip-face fyzika-flip-front flex h-full items-center justify-center rounded-xl border-2 text-lg font-bold text-app-fg ${cardBackClass}`}
                   >
                     ?
                   </span>
@@ -226,7 +226,7 @@ export function PexesoGame({
                     className={`fyzika-flip-face fyzika-flip-back flex h-full items-center justify-center rounded-xl border-2 p-1 text-center text-[0.65rem] font-semibold leading-tight text-slate-100 sm:text-xs ${
                       isMatched
                         ? "border-emerald-500/60 bg-emerald-900/40"
-                        : "border-cyan-500/40 bg-slate-800/90"
+                        : "border-cyan-500/40 bg-app-card/90"
                     }`}
                   >
                     {card.text}

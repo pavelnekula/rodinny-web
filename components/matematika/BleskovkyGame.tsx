@@ -103,14 +103,14 @@ export function BleskovkyGame() {
         <h1 className="bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-3xl font-extrabold text-transparent sm:text-4xl">
           ⚡ Bleskové příklady
         </h1>
-        <p className="mt-2 text-slate-600">
+        <p className="mt-2 text-app-muted">
           Máš minutu — odpovídej co nejrychleji správně.
         </p>
       </header>
 
       {phase === "pick" && (
         <div className="space-y-4">
-          <p className="text-center font-medium text-slate-700">
+          <p className="text-center font-medium text-app-muted">
             Vyber obtížnost:
           </p>
           <div className="grid gap-3 sm:grid-cols-3">
@@ -153,15 +153,15 @@ export function BleskovkyGame() {
 
       {phase === "play" && (
         <div
-          className={`rounded-3xl border-2 border-violet-200 bg-white/95 p-6 shadow-xl transition ${
+          className={`rounded-3xl border-2 border-violet-200 bg-app-card p-6 shadow-xl transition ${
             flash === "bad" ? "animate-pulse bg-rose-50 ring-2 ring-rose-300" : ""
           } ${flash === "ok" ? "ring-2 ring-emerald-300" : ""}`}
         >
           <div className="mb-6 flex items-center justify-between text-lg font-bold">
             <span className="tabular-nums text-violet-700">⏱ {timeLeft} s</span>
-            <span className="text-slate-700">Body: {score}</span>
+            <span className="text-app-muted">Body: {score}</span>
           </div>
-          <p className="mb-6 text-center text-2xl font-bold text-slate-900 sm:text-3xl">
+          <p className="mb-6 text-center text-2xl font-bold text-app-fg sm:text-3xl">
             {bleskDisplayLine(problem)}
           </p>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-center">
@@ -190,7 +190,7 @@ export function BleskovkyGame() {
 
       {phase === "done" && (
         <div className="rounded-3xl border-2 border-violet-200 bg-gradient-to-br from-violet-50 to-fuchsia-50 p-8 text-center shadow-lg">
-          <p className="text-xl font-bold text-slate-800">
+          <p className="text-xl font-bold text-app-fg">
             Čas je pryč! Výsledek:{" "}
             <strong className="text-violet-700">{score}</strong> příkladů za{" "}
             {DURATION} sekund
@@ -198,7 +198,7 @@ export function BleskovkyGame() {
           <div className="mt-4 flex justify-center">
             <StarRow count={stars} />
           </div>
-          <p className="mt-2 text-sm text-slate-600">
+          <p className="mt-2 text-sm text-app-muted">
             Nejlepší výsledek se ukládá do prohlížeče.
           </p>
           <button

@@ -12,7 +12,7 @@ export function LectureDoc({ slug }: LectureDocProps) {
   const content = getTopicContent(slug);
   if (!meta || !content) {
     return (
-      <p className="text-slate-400">Téma nenalezeno.</p>
+      <p className="text-app-muted">Téma nenalezeno.</p>
     );
   }
 
@@ -26,22 +26,22 @@ export function LectureDoc({ slug }: LectureDocProps) {
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
           {meta.title}
         </h1>
-        <p className="mt-2 text-slate-400">Výklad · prima osmileté gymnázium</p>
+        <p className="mt-2 text-app-muted">Výklad · prima osmileté gymnázium</p>
       </header>
 
       <div className="space-y-3">
         {content.lecture.map((sec) => (
           <details
             key={sec.id}
-            className="group rounded-xl border border-slate-700/80 bg-slate-900/50 open:border-cyan-500/30"
+            className="group rounded-xl border border-app-border bg-slate-900/50 open:border-cyan-500/30"
           >
             <summary className="cursor-pointer list-none px-4 py-4 font-semibold text-slate-100 marker:content-none [&::-webkit-details-marker]:hidden">
               <span className="flex items-center justify-between gap-2">
                 {sec.title}
-                <span className="text-cyan-400 transition group-open:rotate-180">▼</span>
+                <span className="text-app-accent transition group-open:rotate-180">▼</span>
               </span>
             </summary>
-            <div className="space-y-3 border-t border-slate-700/60 px-4 pb-4 pt-3 text-slate-300">
+            <div className="space-y-3 border-t border-slate-700/60 px-4 pb-4 pt-3 text-app-subtle">
               {sec.paragraphs.map((p, i) => (
                 <p key={i} className="leading-relaxed">
                   {p}
@@ -62,7 +62,7 @@ export function LectureDoc({ slug }: LectureDocProps) {
         </Link>
         <Link
           href={`/fyzika-teodor/${slug}/pexeso`}
-          className="inline-flex rounded-xl border border-slate-600 px-6 py-3 font-semibold text-slate-200 hover:border-cyan-500/50"
+          className="inline-flex rounded-xl border border-slate-600 px-6 py-3 font-semibold text-app-fg hover:border-cyan-500/50"
         >
           Pexeso
         </Link>

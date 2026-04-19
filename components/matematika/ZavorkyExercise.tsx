@@ -43,7 +43,7 @@ export function ZavorkyExercise() {
         <h1 className="bg-gradient-to-r from-orange-500 to-amber-600 bg-clip-text text-3xl font-extrabold text-transparent sm:text-4xl">
           🧠 Závorky a pořadí počtů
         </h1>
-        <p className="mt-2 text-slate-600">
+        <p className="mt-2 text-app-muted">
           Šest příkladů — nejdřív závorka nebo násobení, pak zbytek.
         </p>
       </header>
@@ -54,7 +54,7 @@ export function ZavorkyExercise() {
           return (
             <li
               key={i}
-              className={`rounded-2xl border-2 bg-white/95 p-4 shadow-md ${
+              className={`rounded-2xl border-2 bg-app-card p-4 shadow-md ${
                 checked && mask
                   ? mask[i]
                     ? "border-emerald-400"
@@ -62,7 +62,7 @@ export function ZavorkyExercise() {
                   : "border-orange-200"
               }`}
             >
-              <div className="flex flex-wrap items-center gap-3 text-xl font-semibold text-slate-800 sm:text-2xl">
+              <div className="flex flex-wrap items-center gap-3 text-xl font-semibold text-app-fg sm:text-2xl">
                 <span>{p.expression}</span>
                 <span>=</span>
                 <input
@@ -105,12 +105,12 @@ export function ZavorkyExercise() {
         <button
           type="button"
           onClick={regen}
-          className="rounded-2xl border-2 border-slate-300 bg-white px-6 py-3 font-semibold text-slate-700"
+          className="rounded-2xl border-2 border-app-border bg-app-card px-6 py-3 font-semibold text-app-muted"
         >
           Nové příklady
         </button>
         {checked && mask && (
-          <p className="text-lg font-bold text-slate-800">
+          <p className="text-lg font-bold text-app-fg">
             Skóre: {mask.filter(Boolean).length}/6
           </p>
         )}

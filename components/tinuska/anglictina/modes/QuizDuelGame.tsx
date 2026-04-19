@@ -289,7 +289,7 @@ export function QuizDuelGame({
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <Link
             href="/tinuska/anglictina"
-            className="rounded-xl border-2 border-[#e5e7eb] bg-white px-4 py-2 font-semibold text-[#1a1a1a]"
+            className="rounded-xl border-2 border-[#e5e7eb] bg-app-card px-4 py-2 font-semibold text-[#1a1a1a]"
           >
             ← Zpět do menu
           </Link>
@@ -298,7 +298,7 @@ export function QuizDuelGame({
               <span className="text-lg font-bold text-amber-800">
                 🔥 ×{streakMultiplier(streak)}
               </span>
-              <span className="text-lg font-bold text-slate-800">
+              <span className="text-lg font-bold text-app-fg">
                 💯 {soloScore}
               </span>
             </div>
@@ -306,7 +306,7 @@ export function QuizDuelGame({
         </div>
 
         {phase === "menu" ? (
-          <div className="rounded-3xl border-2 border-[#e5e7eb] bg-white p-8 text-center shadow-sm">
+          <div className="rounded-3xl border-2 border-[#e5e7eb] bg-app-card p-8 text-center shadow-sm">
             <h1 className="text-3xl font-extrabold text-[#1a1a1a]">
               ⚡ Kvízový souboj
             </h1>
@@ -382,7 +382,7 @@ function SoloSetup({
   onBack: () => void;
 }) {
   return (
-    <div className="rounded-3xl border-2 border-[#e5e7eb] bg-white p-6 shadow-sm">
+    <div className="rounded-3xl border-2 border-[#e5e7eb] bg-app-card p-6 shadow-sm">
       <h2 className="text-2xl font-bold text-[#1a1a1a]">Sólo — nastavení</h2>
       <p className="mt-2 text-[#6b7280]">10 otázek, čas podle obtížnosti.</p>
       <div className="mt-4">
@@ -393,7 +393,7 @@ function SoloSetup({
             className={`rounded-xl border-2 px-3 py-2 text-sm font-semibold ${
               soloCat === "all"
                 ? "border-[#3b82f6] bg-sky-50"
-                : "border-[#e5e7eb] bg-white"
+                : "border-[#e5e7eb] bg-app-card"
             }`}
             onClick={() => setSoloCat("all")}
           >
@@ -406,7 +406,7 @@ function SoloSetup({
               className={`rounded-xl border-2 px-3 py-2 text-sm font-semibold ${
                 soloCat === c.id
                   ? "border-[#3b82f6] bg-sky-50"
-                  : "border-[#e5e7eb] bg-white"
+                  : "border-[#e5e7eb] bg-app-card"
               }`}
               onClick={() => setSoloCat(c.id)}
             >
@@ -432,7 +432,7 @@ function SoloSetup({
               className={`rounded-2xl border-2 p-4 text-left ${
                 soloDiff === id
                   ? "border-[#3b82f6] bg-sky-50"
-                  : "border-[#e5e7eb] bg-white"
+                  : "border-[#e5e7eb] bg-app-card"
               }`}
             >
               <span className="block font-bold text-[#1a1a1a]">{t}</span>
@@ -444,7 +444,7 @@ function SoloSetup({
       <div className="mt-8 flex flex-wrap gap-3">
         <button
           type="button"
-          className="rounded-xl border-2 border-[#e5e7eb] bg-white px-6 py-3 font-semibold"
+          className="rounded-xl border-2 border-[#e5e7eb] bg-app-card px-6 py-3 font-semibold"
           onClick={onBack}
         >
           Zpět
@@ -486,7 +486,7 @@ function SoloPlay({
     current.direction === "enToCs" ? current.word.en : current.word.cs;
   const progress = maxT > 0 ? remain / maxT : 0;
   return (
-    <div className="rounded-3xl border-2 border-[#e5e7eb] bg-white p-6 shadow-sm">
+    <div className="rounded-3xl border-2 border-[#e5e7eb] bg-app-card p-6 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-[#6b7280]">
@@ -568,7 +568,7 @@ function SoloEnd({
         </button>
         <button
           type="button"
-          className="rounded-2xl border-2 border-[#e5e7eb] bg-white px-6 py-3 font-bold text-[#1a1a1a]"
+          className="rounded-2xl border-2 border-[#e5e7eb] bg-app-card px-6 py-3 font-bold text-[#1a1a1a]"
           onClick={onMenu}
         >
           Zpět do menu

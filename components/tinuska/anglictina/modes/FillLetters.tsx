@@ -246,7 +246,7 @@ export function FillLetters({
 
   if (playable.length === 0) {
     return (
-      <p className="text-center text-lg text-slate-600">
+      <p className="text-center text-lg text-app-muted">
         V této sadě není vhodné slovo pro doplňování písmen.
       </p>
     );
@@ -256,10 +256,10 @@ export function FillLetters({
     return (
       <div className="mx-auto flex max-w-lg flex-col items-center gap-6 px-4 py-8 text-center">
         <p className="text-4xl">{smiley}</p>
-        <p className="text-2xl font-extrabold text-slate-900">
+        <p className="text-2xl font-extrabold text-app-fg">
           Konec hry! Body: {totalScore}
         </p>
-        <p className="text-slate-600">
+        <p className="text-app-muted">
           Životy: {"❤️".repeat(Math.max(0, lives))}
           {lives === 0 ? " (žádné)" : ""}
         </p>
@@ -284,7 +284,7 @@ export function FillLetters({
           <button
             type="button"
             onClick={onExit}
-            className="rounded-2xl border-2 border-slate-300 bg-white px-8 py-3 text-xl font-bold text-slate-700"
+            className="rounded-2xl border-2 border-app-border bg-app-card px-8 py-3 text-xl font-bold text-app-muted"
           >
             Zpět
           </button>
@@ -299,10 +299,10 @@ export function FillLetters({
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-lg font-bold text-slate-800">
+          <p className="text-lg font-bold text-app-fg">
             {categoryLabel} · Doplň písmena
           </p>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-app-muted">
             Body: {totalScore} · Životy: {"❤️".repeat(lives)} · Nápovědy:{" "}
             {hintsLeft} 💡
           </p>
@@ -310,24 +310,24 @@ export function FillLetters({
         <button
           type="button"
           onClick={onExit}
-          className="rounded-xl border-2 border-slate-300 bg-white px-4 py-2 font-semibold text-slate-700"
+          className="rounded-xl border-2 border-app-border bg-app-card px-4 py-2 font-semibold text-app-muted"
         >
           ← Zpět
         </button>
       </div>
 
-      <div className="rounded-2xl border-4 border-teal-200 bg-white/95 p-4 shadow-lg">
-        <p className="text-center text-lg font-bold text-slate-800">
+      <div className="rounded-2xl border-4 border-teal-200 bg-app-card p-4 shadow-lg">
+        <p className="text-center text-lg font-bold text-app-fg">
           {word.cs}
         </p>
-        <p className="mt-2 text-center text-base text-slate-600">
+        <p className="mt-2 text-center text-base text-app-muted">
           {word.sentence}
         </p>
       </div>
 
       <div
         className={`rounded-3xl border-4 p-4 transition-colors ${
-          flashOk ? "border-emerald-400 bg-emerald-50" : "border-slate-200 bg-white"
+          flashOk ? "border-emerald-400 bg-emerald-50" : "border-app-border bg-app-card"
         } ${shake ? "ring-4 ring-rose-400" : ""}`}
       >
         <div
@@ -341,8 +341,8 @@ export function FillLetters({
                 mask[i]
                   ? filled[i]
                     ? "border-emerald-500 bg-emerald-100 text-emerald-900"
-                    : "border-dashed border-slate-400 bg-slate-50 text-slate-400"
-                  : "border-slate-300 bg-slate-100 text-slate-800"
+                    : "border-dashed border-slate-400 bg-app-card text-app-muted"
+                  : "border-app-border bg-app-card text-app-fg"
               }`}
             >
               {mask[i] ? (filled[i] ?? "") : ch}
@@ -373,7 +373,7 @@ export function FillLetters({
               disabled={lives <= 0}
               className={`flex h-12 min-w-[2.75rem] items-center justify-center rounded-xl border-2 text-xl font-bold uppercase shadow transition sm:h-14 sm:min-w-[3rem] sm:text-2xl ${
                 used
-                  ? "border-slate-200 bg-slate-100 text-slate-400"
+                  ? "border-app-border bg-app-card text-app-muted"
                   : "border-amber-300 bg-amber-100 text-amber-950 hover:bg-amber-200"
               }`}
             >

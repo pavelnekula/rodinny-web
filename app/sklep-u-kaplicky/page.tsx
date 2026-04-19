@@ -36,32 +36,34 @@ export const metadata: Metadata = {
   description: `${PLACE_TITLE_GOOGLE} – Dyjákovičky u Znojma. Mapa a odkazy na Google Mapy.`,
 };
 
+const infoCard =
+  "app-card app-card-interactive p-6 transition-transform hover:-translate-y-0.5";
+
 export default function SklepUKaplickyPage() {
   return (
-    <div className="min-h-screen bg-[#ffffff] text-[#1a1a1a]">
-      <div className="mx-auto max-w-3xl px-6 py-16 sm:px-8 sm:py-20 md:py-24">
+    <div className="mx-auto max-w-3xl py-2 sm:py-4">
         <Link
           href="/"
-          className="inline-flex text-sm font-light text-[#3b82f6] transition hover:underline focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2"
+          className="inline-flex text-sm font-medium text-app-accent underline-offset-4 transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent focus-visible:ring-offset-2 focus-visible:ring-offset-app-bg"
           aria-label="Zpět na hlavní stránku"
         >
           ← Zpět domů
         </Link>
 
-        <header className="mt-12 border-b border-[#e5e7eb] pb-12">
-          <h1 className="text-4xl font-semibold leading-[1.15] tracking-tight text-[#1a1a1a] sm:text-5xl md:text-6xl">
+        <header className="mt-10 border-b border-app-divider pb-10 sm:mt-12 sm:pb-12">
+          <h1 className="app-title-gradient text-4xl font-bold tracking-[-0.05em] sm:text-5xl md:text-6xl md:tracking-[-0.08em]">
             Sklep u Kapličky 🏚️
           </h1>
-          <p className="mt-6 text-xl font-light leading-relaxed text-[#6b7280] sm:text-2xl">
+          <p className="mt-6 text-xl font-normal leading-relaxed text-app-muted sm:text-2xl">
             Naše oblíbené místo
           </p>
         </header>
 
-        <article className="mt-16 border-t border-[#e5e7eb] pt-16">
-          <h2 className="text-2xl font-semibold tracking-tight text-[#1a1a1a]">
+        <article className="mt-14 border-t border-app-divider pt-14 sm:mt-16 sm:pt-16">
+          <h2 className="text-2xl font-semibold tracking-tight text-app-fg">
             Historie místa
           </h2>
-          <div className="mt-8 space-y-6 text-lg font-light leading-[1.75] text-[#6b7280]">
+          <div className="mt-8 space-y-6 text-lg font-light leading-[1.75] text-app-muted">
             <p>
               Zde bude příběh místa – kdy vzniklo, kdo ho postavil, jaké má pro
               nás místo v srdci…
@@ -72,7 +74,7 @@ export default function SklepUKaplickyPage() {
                 href={MAPS_SHORT_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-medium text-[#3b82f6] underline-offset-2 hover:underline"
+                className="font-medium text-app-accent underline-offset-2 hover:underline"
               >
                 Google Mapách
               </a>{" "}
@@ -82,31 +84,31 @@ export default function SklepUKaplickyPage() {
           </div>
         </article>
 
-        <section className="mt-20 border-t border-[#e5e7eb] pt-20">
-          <h2 className="text-2xl font-semibold tracking-tight text-[#1a1a1a]">
+        <section className="mt-16 border-t border-app-divider pt-16 sm:mt-20 sm:pt-20">
+          <h2 className="text-2xl font-semibold tracking-tight text-app-fg">
             Praktické informace
           </h2>
-          <p className="mt-4 text-sm font-light leading-relaxed text-[#6b7280]">
+          <p className="mt-4 text-sm font-light leading-relaxed text-app-muted">
             Níže jsou údaje zkopírované z polohy a názvu místa na Google Mapách;
             adresu doplňuje odhad z mapy okolí (OpenStreetMap). Kontakt, otevírací
             dobu a fotky v plné kvalitě máš vždy aktuální v profilu na Mapách.
           </p>
 
           <ul className="mt-10 flex flex-col gap-4">
-            <li className="rounded-xl border border-[#e5e7eb] bg-[#ffffff] p-6 shadow-sm">
-              <p className="text-sm font-medium text-[#1a1a1a]">
+            <li className={infoCard}>
+              <p className="text-sm font-medium text-app-fg">
                 <span aria-hidden>📍</span> Název (Google Mapy)
               </p>
-              <p className="mt-2 font-light leading-relaxed text-[#6b7280]">
+              <p className="mt-2 font-light leading-relaxed text-app-muted">
                 {PLACE_TITLE_GOOGLE}
               </p>
             </li>
 
-            <li className="rounded-xl border border-[#e5e7eb] bg-[#ffffff] p-6 shadow-sm">
-              <p className="text-sm font-medium text-[#1a1a1a]">
+            <li className={infoCard}>
+              <p className="text-sm font-medium text-app-fg">
                 <span aria-hidden>📍</span> Adresa (podle polohy značky)
               </p>
-              <p className="mt-2 font-light leading-relaxed text-[#6b7280]">
+              <p className="mt-2 font-light leading-relaxed text-app-muted">
                 {ADDRESS_LINES.map((line) => (
                   <span key={line} className="block">
                     {line}
@@ -115,27 +117,27 @@ export default function SklepUKaplickyPage() {
               </p>
             </li>
 
-            <li className="rounded-xl border border-[#e5e7eb] bg-[#ffffff] p-6 shadow-sm">
-              <p className="text-sm font-medium text-[#1a1a1a]">
+            <li className={infoCard}>
+              <p className="text-sm font-medium text-app-fg">
                 <span aria-hidden>🧭</span> GPS (střed značky z Google Map)
               </p>
-              <p className="mt-2 font-mono text-sm font-light text-[#6b7280]">
+              <p className="mt-2 font-mono text-sm font-light text-app-muted">
                 {LAT}, {LNG}
               </p>
             </li>
 
-            <li className="rounded-xl border border-[#e5e7eb] bg-[#ffffff] p-6 shadow-sm">
-              <p className="text-sm font-medium text-[#1a1a1a]">
+            <li className={infoCard}>
+              <p className="text-sm font-medium text-app-fg">
                 <span aria-hidden>🚗</span> Příjezd
               </p>
-              <p className="mt-2 font-light leading-relaxed text-[#6b7280]">
+              <p className="mt-2 font-light leading-relaxed text-app-muted">
                 Zadej do navigace „{PLACE_TITLE_GOOGLE}“ nebo souřadnice{" "}
                 {LAT}, {LNG}. Detail trasy a parkování ověř v aplikaci{" "}
                 <a
                   href={MAPS_SHORT_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-medium text-[#3b82f6] underline-offset-2 hover:underline"
+                  className="font-medium text-app-accent underline-offset-2 hover:underline"
                 >
                   Google Mapy
                 </a>
@@ -143,18 +145,18 @@ export default function SklepUKaplickyPage() {
               </p>
             </li>
 
-            <li className="rounded-xl border border-[#e5e7eb] bg-[#ffffff] p-6 shadow-sm">
-              <p className="text-sm font-medium text-[#1a1a1a]">
+            <li className={infoCard}>
+              <p className="text-sm font-medium text-app-fg">
                 <span aria-hidden>📞</span> Kontakt
               </p>
-              <p className="mt-2 font-light leading-relaxed text-[#6b7280]">
+              <p className="mt-2 font-light leading-relaxed text-app-muted">
                 Telefon, e-mail a web (pokud jsou u místa vyplněné) jsou v profilu
                 na{" "}
                 <a
                   href={MAPS_PLACE_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-medium text-[#3b82f6] underline-offset-2 hover:underline"
+                  className="font-medium text-app-accent underline-offset-2 hover:underline"
                 >
                   této stránce místa
                 </a>{" "}
@@ -162,25 +164,25 @@ export default function SklepUKaplickyPage() {
               </p>
             </li>
 
-            <li className="rounded-xl border border-[#e5e7eb] bg-[#ffffff] p-6 shadow-sm">
-              <p className="text-sm font-medium text-[#1a1a1a]">
+            <li className={infoCard}>
+              <p className="text-sm font-medium text-app-fg">
                 <span aria-hidden>🕐</span> Otevírací doba
               </p>
-              <p className="mt-2 font-light leading-relaxed text-[#6b7280]">
+              <p className="mt-2 font-light leading-relaxed text-app-muted">
                 Aktuální hodiny (pokud je provozovatel v Mapách vyplnil) najdeš u
                 profilu místa po kliknutí na odkaz níže – na web je nelze spolehlivě
                 přenést bez pravidelné aktualizace.
               </p>
             </li>
 
-            <li className="rounded-xl border border-[#e5e7eb] bg-[#ffffff] p-6 shadow-sm">
-              <p className="text-sm font-medium text-[#1a1a1a]">
+            <li className={infoCard}>
+              <p className="text-sm font-medium text-app-fg">
                 <span aria-hidden>🗺️</span> Mapa (vložená)
               </p>
-              <p className="mt-2 text-sm font-light leading-relaxed text-[#6b7280]">
+              <p className="mt-2 text-sm font-light leading-relaxed text-app-muted">
                 Stejné středové souřadnice jako značka na Google Mapách.
               </p>
-              <div className="mt-4 overflow-hidden rounded-lg border border-[#e5e7eb]">
+              <div className="mt-4 overflow-hidden rounded-[12px] border border-app-border">
                 <iframe
                   title="Mapa – Sklep u Kapličky (střed podle Google Map)"
                   src={MAP_EMBED_SRC}
@@ -192,11 +194,11 @@ export default function SklepUKaplickyPage() {
               </div>
             </li>
 
-            <li className="rounded-xl border border-[#e5e7eb] bg-[#ffffff] p-6 shadow-sm">
-              <p className="text-sm font-medium text-[#1a1a1a]">
+            <li className={infoCard}>
+              <p className="text-sm font-medium text-app-fg">
                 <span aria-hidden>🖼️</span> Fotky
               </p>
-              <p className="mt-2 font-light leading-relaxed text-[#6b7280]">
+              <p className="mt-2 font-light leading-relaxed text-app-muted">
                 Fotografie z profilu místa (uživatelské i oficiální) Google
                 neumožňuje vložit na web jako statické soubory bez API klíče –
                 zobrazíš je po otevření místa v Mapách (záložka s fotkami u
@@ -207,7 +209,7 @@ export default function SklepUKaplickyPage() {
                   href={MAPS_SHORT_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex w-fit text-sm font-medium text-[#3b82f6] underline-offset-2 hover:underline"
+                  className="inline-flex w-fit text-sm font-medium text-app-accent underline-offset-2 hover:underline"
                 >
                   Krátký odkaz (sdílení) →
                 </a>
@@ -215,7 +217,7 @@ export default function SklepUKaplickyPage() {
                   href={MAPS_PLACE_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex w-fit text-sm font-medium text-[#3b82f6] underline-offset-2 hover:underline"
+                  className="inline-flex w-fit text-sm font-medium text-app-accent underline-offset-2 hover:underline"
                 >
                   Úplná stránka místa v Mapách →
                 </a>
@@ -224,17 +226,16 @@ export default function SklepUKaplickyPage() {
           </ul>
         </section>
 
-        <section className="mt-20 border-t border-[#e5e7eb] pt-20">
-          <h2 className="text-2xl font-semibold tracking-tight text-[#1a1a1a]">
+        <section className="mt-16 border-t border-app-divider pt-16 sm:mt-20 sm:pt-20">
+          <h2 className="text-2xl font-semibold tracking-tight text-app-fg">
             Objednat víno
           </h2>
-          <p className="mt-4 text-sm font-light leading-relaxed text-[#6b7280]">
+          <p className="mt-4 text-sm font-light leading-relaxed text-app-muted">
             Vyberte vína a typ lahví, způsob dopravy a kontakt. Cena se přepočítá
             automaticky.
           </p>
           <WineOrderForm />
         </section>
-      </div>
     </div>
   );
 }

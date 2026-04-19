@@ -132,7 +132,7 @@ export function KartyGame() {
         <h1 className="bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-3xl font-extrabold text-transparent sm:text-4xl">
           🃏 Matematické karty
         </h1>
-        <p className="mt-2 text-slate-600">
+        <p className="mt-2 text-app-muted">
           Otoč dvě karty — patří k sobě stejný pár příkladů nebo příklad a
           výsledek.
         </p>
@@ -169,7 +169,7 @@ export function KartyGame() {
 
       {difficulty && !won && (
         <>
-          <div className="mb-4 flex flex-wrap justify-between gap-2 text-lg font-semibold text-slate-700">
+          <div className="mb-4 flex flex-wrap justify-between gap-2 text-lg font-semibold text-app-muted">
             <span className="tabular-nums">⏱ {elapsed}s</span>
             <span>Pokusů: {attempts}</span>
           </div>
@@ -197,7 +197,7 @@ export function KartyGame() {
                     <div className="fyzika-flip-face flex h-full items-center justify-center rounded-2xl border-2 border-pink-200 bg-gradient-to-br from-pink-100 to-rose-50 text-3xl">
                       🎴
                     </div>
-                    <div className="fyzika-flip-face fyzika-flip-back flex h-full items-center justify-center rounded-2xl border-2 border-white bg-white p-2 text-center text-lg font-bold leading-tight text-slate-800 shadow-inner sm:text-xl">
+                    <div className="fyzika-flip-face fyzika-flip-back flex h-full items-center justify-center rounded-2xl border-2 border-white bg-app-card p-2 text-center text-lg font-bold leading-tight text-app-fg shadow-inner sm:text-xl">
                       {c.text}
                     </div>
                   </div>
@@ -211,7 +211,7 @@ export function KartyGame() {
               setDifficulty(null);
               setDeck([]);
             }}
-            className="mt-6 rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600"
+            className="mt-6 rounded-xl border border-app-border px-4 py-2 text-sm font-medium text-app-muted"
           >
             Změnit obtížnost
           </button>
@@ -220,8 +220,8 @@ export function KartyGame() {
 
       {won && difficulty && (
         <div className="rounded-3xl border-2 border-pink-200 bg-gradient-to-br from-pink-50 to-rose-50 p-8 text-center shadow-xl">
-          <p className="text-2xl font-bold text-slate-800">Hotovo!</p>
-          <p className="mt-2 text-slate-600">
+          <p className="text-2xl font-bold text-app-fg">Hotovo!</p>
+          <p className="mt-2 text-app-muted">
             Čas: <strong>{finalTime}</strong>s · pokusů: <strong>{attempts}</strong>
           </p>
           <div className="mt-4 flex justify-center">
@@ -241,7 +241,7 @@ export function KartyGame() {
               setWon(false);
               setDeck([]);
             }}
-            className="mt-3 block w-full rounded-xl border border-slate-300 py-2 text-sm text-slate-600"
+            className="mt-3 block w-full rounded-xl border border-app-border py-2 text-sm text-app-muted"
           >
             Jiná obtížnost
           </button>

@@ -8,7 +8,7 @@ export function ExercisePageClient({ slug }: { slug: string }) {
   const meta = getTopicMeta(slug);
   const content = getTopicContent(slug);
   if (!meta || !content) {
-    return <p className="text-slate-400">Téma nenalezeno.</p>;
+    return <p className="text-app-muted">Téma nenalezeno.</p>;
   }
 
   return (

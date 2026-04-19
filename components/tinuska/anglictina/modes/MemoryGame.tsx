@@ -206,7 +206,7 @@ export function MemoryGame({
 
   if (words.length < 2) {
     return (
-      <p className="text-center text-lg text-slate-600">
+      <p className="text-center text-lg text-app-muted">
         Potřebujeme alespoň 2 slovíčka.
       </p>
     );
@@ -216,10 +216,10 @@ export function MemoryGame({
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-lg font-bold text-slate-800">
+          <p className="text-lg font-bold text-app-fg">
             {categoryLabel} · Pexeso
           </p>
-          <p className="text-base text-slate-600">
+          <p className="text-base text-app-muted">
             Tahy: <span className="font-bold tabular-nums">{moves}</span> · Čas:{" "}
             <span className="font-bold tabular-nums">{secondsDisplay}</span> s ·
             Body: <span className="font-bold tabular-nums">{score}</span>
@@ -241,7 +241,7 @@ export function MemoryGame({
           <button
             type="button"
             onClick={onExit}
-            className="rounded-xl border-2 border-slate-300 bg-white px-4 py-2 font-semibold text-slate-700"
+            className="rounded-xl border-2 border-app-border bg-app-card px-4 py-2 font-semibold text-app-muted"
           >
             ← Zpět
           </button>
@@ -274,7 +274,7 @@ export function MemoryGame({
           <p className="relative mt-4 text-5xl" aria-label="Hvězdy">
             {"⭐".repeat(starRating(moves))}
           </p>
-          <p className="relative mt-2 text-sm text-slate-600">
+          <p className="relative mt-2 text-sm text-app-muted">
             1⭐ dokončeno · 2⭐ méně než 25 tahů · 3⭐ méně než 18 tahů
           </p>
           <div className="relative mt-6 flex flex-wrap justify-center gap-3">
@@ -288,7 +288,7 @@ export function MemoryGame({
             <button
               type="button"
               onClick={onExit}
-              className="rounded-2xl border-2 border-slate-400 bg-white px-8 py-3 text-xl font-bold text-slate-700"
+              className="rounded-2xl border-2 border-slate-400 bg-app-card px-8 py-3 text-xl font-bold text-app-muted"
             >
               Zpět
             </button>
@@ -323,12 +323,12 @@ export function MemoryGame({
                     <span className="text-lg" aria-hidden>
                       {card.face === "en" ? "🇬🇧" : "🇨🇿"}
                     </span>
-                    <span className="mt-1 px-1 text-sm font-bold leading-tight text-slate-900 sm:text-base">
+                    <span className="mt-1 px-1 text-sm font-bold leading-tight text-app-fg sm:text-base">
                       {card.face === "en" ? card.word.en : card.word.cs}
                     </span>
                   </>
                 ) : (
-                  <span className="text-2xl font-bold text-slate-600">?</span>
+                  <span className="text-2xl font-bold text-app-muted">?</span>
                 )}
               </button>
             );

@@ -58,7 +58,7 @@ export function PocitaniExercise() {
         <h1 className="bg-gradient-to-r from-sky-600 to-blue-600 bg-clip-text text-3xl font-extrabold text-transparent sm:text-4xl">
           ✏️ Doplň číslo
         </h1>
-        <p className="mt-2 text-slate-600">
+        <p className="mt-2 text-app-muted">
           Osm příkladů — doplníš chybějící číslo. Rozsah 1–99, výsledek také nejvýš
           99.
         </p>
@@ -68,7 +68,7 @@ export function PocitaniExercise() {
         {problems.map((p, i) => (
           <li
             key={i}
-            className={`rounded-2xl border-2 bg-white/90 p-4 shadow-md transition ${
+            className={`rounded-2xl border-2 bg-app-card p-4 shadow-md transition ${
               checked && correctMask
                 ? correctMask[i]
                   ? "border-emerald-400 ring-2 ring-emerald-200"
@@ -98,21 +98,21 @@ export function PocitaniExercise() {
         <button
           type="button"
           onClick={onCheck}
-          className="rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 px-8 py-4 text-lg font-bold text-white shadow-lg transition hover:scale-[1.02] hover:shadow-xl focus-visible:outline focus-visible:ring-2 focus-visible:ring-blue-400"
+          className="rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 px-8 py-4 text-lg font-bold text-white shadow-lg transition hover:scale-[1.02] hover:shadow-xl focus-visible:outline focus-visible:ring-2 focus-visible:ring-app-accent"
         >
           Zkontrolovat
         </button>
         <button
           type="button"
           onClick={regen}
-          className="rounded-2xl border-2 border-slate-300 bg-white px-6 py-3 font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+          className="rounded-2xl border-2 border-app-border bg-app-card px-6 py-3 font-semibold text-app-muted shadow-sm transition hover:bg-app-card"
         >
           Nové příklady
         </button>
         {score !== null && (
           <p
             className={`text-lg font-bold ${
-              score === 8 ? "animate-bounce text-emerald-600" : "text-slate-700"
+              score === 8 ? "animate-bounce text-emerald-600" : "text-app-muted"
             }`}
           >
             Skóre: {score}/8
@@ -144,13 +144,13 @@ function FillRow({
       aria-label="Odpověď"
       value={value}
       onChange={(e) => onChange(e.target.value.replace(/\D/g, ""))}
-      className="w-20 rounded-xl border-2 border-sky-400 bg-white px-2 py-2 text-center text-2xl font-bold text-slate-800 shadow-inner focus-visible:outline focus-visible:ring-2 focus-visible:ring-sky-400"
+      className="w-20 rounded-xl border-2 border-sky-400 bg-app-card px-2 py-2 text-center text-2xl font-bold text-app-fg shadow-inner focus-visible:outline focus-visible:ring-2 focus-visible:ring-sky-400"
     />
   );
 
   if (p.kind === "result") {
     return (
-      <div className="flex flex-wrap items-center gap-2 text-2xl font-semibold text-slate-800">
+      <div className="flex flex-wrap items-center gap-2 text-2xl font-semibold text-app-fg">
         <span>{L.left}</span>
         <span>{L.op}</span>
         <span>{L.mid}</span>
@@ -166,7 +166,7 @@ function FillRow({
   }
   if (p.kind === "first") {
     return (
-      <div className="flex flex-wrap items-center gap-2 text-2xl font-semibold text-slate-800">
+      <div className="flex flex-wrap items-center gap-2 text-2xl font-semibold text-app-fg">
         {input}
         <span>{L.op}</span>
         <span>{L.mid}</span>
@@ -181,7 +181,7 @@ function FillRow({
     );
   }
   return (
-    <div className="flex flex-wrap items-center gap-2 text-2xl font-semibold text-slate-800">
+    <div className="flex flex-wrap items-center gap-2 text-2xl font-semibold text-app-fg">
       <span>{L.left}</span>
       <span>{L.op}</span>
       {input}

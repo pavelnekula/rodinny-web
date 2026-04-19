@@ -5,7 +5,9 @@ export function StarRow({ count, max = 3 }: { count: number; max?: number }) {
       {Array.from({ length: max }, (_, i) => (
         <span
           key={i}
-          className={i < n ? "text-amber-400 drop-shadow-sm" : "text-slate-300"}
+          className={
+            i < n ? "text-app-accent drop-shadow-sm" : "text-app-subtle"
+          }
           aria-hidden
         >
           ★

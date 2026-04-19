@@ -121,7 +121,7 @@ export function AdventureMapGame({
       <div className="mx-auto max-w-3xl px-4 py-8">
         <Link
           href="/tinuska/anglictina"
-          className="rounded-xl border-2 border-[#e5e7eb] bg-white px-4 py-2 font-semibold"
+          className="rounded-xl border-2 border-[#e5e7eb] bg-app-card px-4 py-2 font-semibold"
         >
           ← Zpět
         </Link>
@@ -138,7 +138,7 @@ export function AdventureMapGame({
               key={c.id}
               type="button"
               onClick={() => onChooseCat(c.id)}
-              className="rounded-2xl border-2 border-[#e5e7eb] bg-white p-4 text-left shadow-sm transition hover:border-[#3b82f6]"
+              className="rounded-2xl border-2 border-[#e5e7eb] bg-app-card p-4 text-left shadow-sm transition hover:border-[#3b82f6]"
             >
               <span className="text-3xl" aria-hidden>
                 {c.tileEmoji}
@@ -182,7 +182,7 @@ export function AdventureMapGame({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Link
             href="/tinuska/anglictina/mapa-dobrodruzstvi"
-            className="rounded-xl border-2 border-[#e5e7eb] bg-white px-4 py-2 font-semibold"
+            className="rounded-xl border-2 border-[#e5e7eb] bg-app-card px-4 py-2 font-semibold"
           >
             ← Zpět
           </Link>
@@ -200,7 +200,7 @@ export function AdventureMapGame({
                 className={`flex items-center gap-3 rounded-2xl border-2 px-4 py-3 ${
                   done
                     ? "border-emerald-400 bg-emerald-50"
-                    : "border-[#e5e7eb] bg-white"
+                    : "border-[#e5e7eb] bg-app-card"
                 }`}
               >
                 <span className="font-mono text-lg font-bold text-[#6b7280]">
@@ -218,7 +218,7 @@ export function AdventureMapGame({
         </div>
 
         {word ? (
-          <div className="mt-8 rounded-3xl border-2 border-[#e5e7eb] bg-white p-6 shadow-sm">
+          <div className="mt-8 rounded-3xl border-2 border-[#e5e7eb] bg-app-card p-6 shadow-sm">
             <p className="text-center text-3xl font-extrabold uppercase text-[#1a1a1a]">
               {word.en}
             </p>

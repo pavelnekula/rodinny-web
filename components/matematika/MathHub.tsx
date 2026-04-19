@@ -20,9 +20,6 @@ type CardDef = {
   title: string;
   desc: string;
   emoji: string;
-  border: string;
-  bg: string;
-  hover: string;
   stars: number;
 };
 
@@ -56,13 +53,16 @@ export function MathHub() {
     );
   }, []);
 
+  const cardSurface =
+    "app-card app-card-interactive flex h-full min-h-[140px] flex-col p-6 focus-within:ring-2 focus-within:ring-app-accent focus-visible:outline-none";
+
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 sm:py-12">
+    <div className="mx-auto w-full max-w-4xl py-2 sm:py-4">
       <header className="mb-10 text-center sm:text-left">
-        <h1 className="bg-gradient-to-r from-blue-600 via-violet-600 to-pink-500 bg-clip-text text-3xl font-extrabold tracking-tight text-transparent sm:text-4xl md:text-5xl">
+        <h1 className="app-title-gradient text-3xl font-bold tracking-[-0.05em] sm:text-4xl md:text-5xl md:tracking-[-0.07em]">
           Matematika pro Tinušku 🧮
         </h1>
-        <p className="mt-3 text-lg text-slate-600">
+        <p className="mt-3 text-lg text-app-muted">
           Vyber si cvičení nebo rychlou hru — všechno je jen u nás v prohlížeči.
         </p>
       </header>
@@ -70,23 +70,20 @@ export function MathHub() {
       <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {cards.map((c) => (
           <li key={c.href}>
-            <Link
-              href={c.href}
-              className={`flex h-full min-h-[140px] flex-col rounded-3xl border-2 ${c.border} ${c.bg} p-6 shadow-lg transition ${c.hover} focus-visible:outline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-400`}
-            >
+            <Link href={c.href} className={`${cardSurface} group block`}>
               <div className="flex items-start gap-3">
                 <span className="text-4xl" aria-hidden>
                   {c.emoji}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-xl font-bold text-slate-800">{c.title}</h2>
-                  <p className="mt-1 text-sm leading-relaxed text-slate-600">
+                  <h2 className="text-xl font-bold text-app-fg">{c.title}</h2>
+                  <p className="mt-1 text-sm leading-relaxed text-app-muted">
                     {c.desc}
                   </p>
                 </div>
               </div>
-              <div className="mt-4 flex items-center justify-between border-t border-white/50 pt-3">
-                <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
+              <div className="mt-4 flex items-center justify-between border-t border-app-divider pt-3">
+                <span className="text-xs font-medium uppercase tracking-wide text-app-subtle">
                   Nejlepší výkon
                 </span>
                 <StarRow count={c.stars} max={3} />
@@ -113,9 +110,6 @@ function buildCards(
       title: "Doplň číslo",
       desc: "Osm příkladů s chybějícím číslem — jen sčítání a odčítání.",
       emoji: "✏️",
-      border: "border-sky-300",
-      bg: "bg-gradient-to-br from-sky-50 to-blue-100/90",
-      hover: "hover:scale-[1.02] hover:shadow-xl",
       stars: s1,
     },
     {
@@ -123,9 +117,6 @@ function buildCards(
       title: "Písemné příklady",
       desc: "Odčítání pod sebou a zkouška: sedí to s horním číslem?",
       emoji: "📐",
-      border: "border-emerald-300",
-      bg: "bg-gradient-to-br from-emerald-50 to-green-100/90",
-      hover: "hover:scale-[1.02] hover:shadow-xl",
       stars: s2,
     },
     {
@@ -133,9 +124,6 @@ function buildCards(
       title: "Závorky a pořadí",
       desc: "Závorky, násobení před sčítáním — přesně jako ve škole.",
       emoji: "🧠",
-      border: "border-orange-300",
-      bg: "bg-gradient-to-br from-orange-50 to-amber-100/90",
-      hover: "hover:scale-[1.02] hover:shadow-xl",
       stars: s3,
     },
     {
@@ -143,9 +131,6 @@ function buildCards(
       title: "Bleskové příklady",
       desc: "60 sekund, co nejvíc správně — časomíra a body.",
       emoji: "⚡",
-      border: "border-violet-300",
-      bg: "bg-gradient-to-br from-violet-50 to-purple-100/90",
-      hover: "hover:scale-[1.02] hover:shadow-xl",
       stars: s4,
     },
     {
@@ -153,9 +138,6 @@ function buildCards(
       title: "Matematické karty",
       desc: "Pexeso: spáruj příklad s výsledkem nebo dva stejné výsledky.",
       emoji: "🃏",
-      border: "border-pink-300",
-      bg: "bg-gradient-to-br from-pink-50 to-rose-100/90",
-      hover: "hover:scale-[1.02] hover:shadow-xl",
       stars: s5,
     },
     {
@@ -163,9 +145,6 @@ function buildCards(
       title: "Tříminutovky",
       desc: "Tři minuty drilování — násobilka, dělení, po desítkách nebo vše najednou.",
       emoji: "⏱️",
-      border: "border-cyan-300",
-      bg: "bg-gradient-to-br from-cyan-50 to-sky-100/90",
-      hover: "hover:scale-[1.02] hover:shadow-xl",
       stars: s6,
     },
   ];

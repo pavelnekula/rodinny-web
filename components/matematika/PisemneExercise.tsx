@@ -64,7 +64,7 @@ export function PisemneExercise() {
         <h1 className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-3xl font-extrabold text-transparent sm:text-4xl">
           📐 Písemné odčítání se zkouškou
         </h1>
-        <p className="mt-2 text-slate-600">
+        <p className="mt-2 text-app-muted">
           Spočítej výsledek pod čárou. Zkouška: k výsledku přičti spodní číslo —
           musí to vyjít jako horní číslo.
         </p>
@@ -74,9 +74,9 @@ export function PisemneExercise() {
         {problems.map((p, i) => (
           <div
             key={i}
-            className="rounded-3xl border-2 border-emerald-200 bg-white/95 p-5 shadow-lg"
+            className="rounded-3xl border-2 border-emerald-200 bg-app-card p-5 shadow-lg"
           >
-            <div className="font-mono text-2xl leading-relaxed text-slate-800">
+            <div className="font-mono text-2xl leading-relaxed text-app-fg">
               <div className="text-right tabular-nums">{String(p.minuend).padStart(4, " ")}</div>
               <div className="text-right tabular-nums">
                 − {String(p.subtrahend).padStart(2, " ")}
@@ -103,7 +103,7 @@ export function PisemneExercise() {
                 />
               </div>
             </div>
-            <p className="mt-4 text-sm text-slate-600">
+            <p className="mt-4 text-sm text-app-muted">
               Zkouška (výsledek + menšitel = ?)
             </p>
             <input
@@ -139,7 +139,7 @@ export function PisemneExercise() {
         <button
           type="button"
           onClick={regen}
-          className="rounded-2xl border-2 border-slate-300 bg-white px-6 py-3 font-semibold text-slate-700"
+          className="rounded-2xl border-2 border-app-border bg-app-card px-6 py-3 font-semibold text-app-muted"
         >
           Nové příklady
         </button>

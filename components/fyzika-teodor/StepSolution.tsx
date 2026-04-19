@@ -14,20 +14,20 @@ export function StepSolution({ steps, visible }: StepSolutionProps) {
   if (!visible) return null;
 
   return (
-    <div className="mt-4 space-y-2 rounded-xl border border-slate-600/80 bg-slate-900/60 p-4">
+    <div className="mt-4 space-y-2 rounded-xl border border-slate-600/80 bg-app-card p-4">
       <p className="text-sm font-semibold text-emerald-400">Postup řešení</p>
-      <ol className="list-decimal space-y-3 pl-5 text-sm text-slate-200">
+      <ol className="list-decimal space-y-3 pl-5 text-sm text-app-fg">
         {steps.map((s, i) => (
           <li key={i}>
             <button
               type="button"
               onClick={() => setOpen(i === open ? -1 : i)}
-              className="text-left font-medium text-cyan-300 hover:underline"
+              className="text-left font-medium text-app-accent hover:underline"
             >
               {s.title}
             </button>
             {(open === i || steps.length <= 2) && (
-              <p className="mt-1 font-light text-slate-300">{s.detail}</p>
+              <p className="mt-1 font-light text-app-subtle">{s.detail}</p>
             )}
           </li>
         ))}

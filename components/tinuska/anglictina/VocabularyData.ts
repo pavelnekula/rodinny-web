@@ -7,8 +7,7 @@ export const VOCABULARY_CATEGORIES: readonly CategoryMeta[] = [
     titleEn: "Colors",
     subtitleCs: "Odstíny a barvy",
     tileEmoji: "🎨",
-    tileClass:
-      "from-amber-200 via-yellow-100 to-orange-100 border-amber-300/80 text-amber-900",
+    tileClass: "",
   },
   {
     id: "furniture",
@@ -16,8 +15,7 @@ export const VOCABULARY_CATEGORIES: readonly CategoryMeta[] = [
     titleEn: "Furniture & rooms",
     subtitleCs: "Doma v místnostech",
     tileEmoji: "🛋️",
-    tileClass:
-      "from-cyan-200 via-teal-100 to-sky-100 border-teal-300/80 text-teal-900",
+    tileClass: "",
   },
   {
     id: "toys",
@@ -25,8 +23,7 @@ export const VOCABULARY_CATEGORIES: readonly CategoryMeta[] = [
     titleEn: "Toys",
     subtitleCs: "Hry a hračky",
     tileEmoji: "🧸",
-    tileClass:
-      "from-rose-200 via-pink-100 to-fuchsia-100 border-rose-300/80 text-rose-900",
+    tileClass: "",
   },
   {
     id: "body",
@@ -34,8 +31,7 @@ export const VOCABULARY_CATEGORIES: readonly CategoryMeta[] = [
     titleEn: "Body parts",
     subtitleCs: "Od hlavy k patě",
     tileEmoji: "🦶",
-    tileClass:
-      "from-lime-200 via-emerald-100 to-teal-100 border-emerald-300/80 text-emerald-900",
+    tileClass: "",
   },
   {
     id: "food",
@@ -43,8 +39,7 @@ export const VOCABULARY_CATEGORIES: readonly CategoryMeta[] = [
     titleEn: "Food",
     subtitleCs: "Jídlo a nápoje",
     tileEmoji: "🍎",
-    tileClass:
-      "from-orange-200 via-amber-100 to-yellow-100 border-orange-300/80 text-orange-950",
+    tileClass: "",
   },
   {
     id: "numbers",
@@ -52,8 +47,7 @@ export const VOCABULARY_CATEGORIES: readonly CategoryMeta[] = [
     titleEn: "Numbers",
     subtitleCs: "Počítání",
     tileEmoji: "🔢",
-    tileClass:
-      "from-indigo-200 via-violet-100 to-purple-100 border-indigo-300/80 text-indigo-950",
+    tileClass: "",
   },
   {
     id: "school",
@@ -61,8 +55,7 @@ export const VOCABULARY_CATEGORIES: readonly CategoryMeta[] = [
     titleEn: "School",
     subtitleCs: "Ve třídě",
     tileEmoji: "🎒",
-    tileClass:
-      "from-sky-200 via-blue-100 to-indigo-100 border-sky-300/80 text-sky-950",
+    tileClass: "",
   },
   {
     id: "toBe",
@@ -70,8 +63,7 @@ export const VOCABULARY_CATEGORIES: readonly CategoryMeta[] = [
     titleEn: "Verb To Be",
     subtitleCs: "Být nebo nebýt",
     tileEmoji: "🔵",
-    tileClass:
-      "from-blue-200 via-sky-100 to-cyan-100 border-blue-300/80 text-blue-950",
+    tileClass: "",
   },
   {
     id: "toHave",
@@ -79,8 +71,7 @@ export const VOCABULARY_CATEGORIES: readonly CategoryMeta[] = [
     titleEn: "Verb To Have",
     subtitleCs: "Mít a vlastnit",
     tileEmoji: "🟢",
-    tileClass:
-      "from-emerald-200 via-green-100 to-lime-100 border-emerald-300/80 text-emerald-950",
+    tileClass: "",
   },
 ] as const;
 

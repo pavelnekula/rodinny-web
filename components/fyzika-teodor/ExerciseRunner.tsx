@@ -94,7 +94,7 @@ export function ExerciseRunner({ slug, exercises, backHref }: ExerciseRunnerProp
 
   if (!ex) {
     return (
-      <p className="text-slate-400">Žádná cvičení v tomto celku.</p>
+      <p className="text-app-muted">Žádná cvičení v tomto celku.</p>
     );
   }
 
@@ -102,13 +102,13 @@ export function ExerciseRunner({ slug, exercises, backHref }: ExerciseRunnerProp
 
   return (
     <div className="space-y-6">
-      <div className="h-2 overflow-hidden rounded-full bg-slate-800">
+      <div className="h-2 overflow-hidden rounded-full bg-app-card">
         <div
           className="h-full bg-gradient-to-r from-cyan-500 to-emerald-500 transition-all duration-500"
           style={{ width: `${pct}%` }}
         />
       </div>
-      <p className="text-sm text-slate-400">
+      <p className="text-sm text-app-muted">
         Příklad {idx + 1} / {exercises.length} · Splněno celkem: {progressDone}{" "}
         · Body v session: {score}
       </p>
@@ -127,7 +127,7 @@ export function ExerciseRunner({ slug, exercises, backHref }: ExerciseRunnerProp
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && submit()}
-              className="w-full rounded-lg border border-slate-600 bg-slate-950 px-4 py-3 text-slate-100 placeholder:text-slate-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+              className="w-full rounded-lg border border-slate-600 bg-app-bg px-4 py-3 text-slate-100 placeholder:text-app-muted focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
               placeholder="Tvoje odpověď…"
             />
           </div>
@@ -154,7 +154,7 @@ export function ExerciseRunner({ slug, exercises, backHref }: ExerciseRunnerProp
           <button
             type="button"
             onClick={() => setShowSteps((s) => !s)}
-            className="rounded-lg border border-slate-500 px-4 py-2 text-sm text-slate-300"
+            className="rounded-lg border border-slate-500 px-4 py-2 text-sm text-app-subtle"
           >
             {showSteps ? "Skrýt postup" : "Ukázat postup"}
           </button>
@@ -172,7 +172,7 @@ export function ExerciseRunner({ slug, exercises, backHref }: ExerciseRunnerProp
       <div className="flex flex-wrap gap-3">
         <Link
           href={backHref}
-          className="rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-300"
+          className="rounded-lg border border-slate-600 px-4 py-2 text-sm text-app-subtle"
         >
           ← Zpět na výklad
         </Link>

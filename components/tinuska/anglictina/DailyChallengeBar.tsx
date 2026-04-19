@@ -15,15 +15,15 @@ export function DailyChallengeBar() {
   );
 
   return (
-    <div className="rounded-2xl border-2 border-dashed border-[#3b82f6]/40 bg-sky-50/80 px-4 py-3 text-left shadow-sm">
-      <p className="text-sm font-bold text-[#1a1a1a]">Denní výzva</p>
-      <p className="mt-1 text-base text-[#374151]">{ch.descriptionCs}</p>
+    <div className="app-card border-dashed border-app-accent/35 px-4 py-3 text-left">
+      <p className="text-sm font-bold text-app-fg">Denní výzva</p>
+      <p className="mt-1 text-base text-app-muted">{ch.descriptionCs}</p>
       {done ? (
-        <p className="mt-2 text-sm font-semibold text-emerald-700">
+        <p className="mt-2 text-sm font-semibold text-app-accent">
           ✓ Splněno dnes
         </p>
       ) : (
-        <p className="mt-2 text-sm text-[#6b7280]">
+        <p className="mt-2 text-sm text-app-subtle">
           Splní se automaticky při splnění úkolu v příslušné hře (postupně
           doplníme).
         </p>

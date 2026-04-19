@@ -33,12 +33,12 @@ export function MojeHvezdyPage() {
       <div className="mx-auto max-w-5xl px-4">
         <Link
           href="/tinuska/anglictina"
-          className="rounded-xl border-2 border-[#e5e7eb] bg-white px-4 py-2 font-semibold text-[#1a1a1a]"
+          className="rounded-xl border-2 border-[#e5e7eb] bg-app-card px-4 py-2 font-semibold text-[#1a1a1a]"
         >
           ← Zpět do her
         </Link>
 
-        <header className="mt-8 rounded-3xl border-2 border-[#e5e7eb] bg-white p-6 shadow-sm">
+        <header className="mt-8 rounded-3xl border-2 border-[#e5e7eb] bg-app-card p-6 shadow-sm">
           <h1 className="text-3xl font-extrabold text-[#1a1a1a]">
             🏅 Moje hvězdy
           </h1>
@@ -82,7 +82,7 @@ export function MojeHvezdyPage() {
                   className={`rounded-2xl border-2 p-4 ${
                     u
                       ? "border-amber-300 bg-amber-50 shadow-sm"
-                      : "border-[#e5e7eb] bg-white opacity-70"
+                      : "border-[#e5e7eb] bg-app-card opacity-70"
                   }`}
                 >
                   <p className="text-2xl" aria-hidden>

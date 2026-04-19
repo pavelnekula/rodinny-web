@@ -102,7 +102,7 @@ export function Flashcards({
 
   if (initialTotal === 0) {
     return (
-      <p className="text-center text-lg text-slate-600">
+      <p className="text-center text-lg text-app-muted">
         V této sadě nejsou žádná slovíčka.
       </p>
     );
@@ -114,7 +114,7 @@ export function Flashcards({
         <p className="text-3xl font-extrabold text-teal-900">
           Skvělá práce! Znala jsi {learnedCount} z {initialTotal} slovíček 🌟
         </p>
-        <p className="text-lg text-slate-600">
+        <p className="text-lg text-app-muted">
           ✅ {okCount} · ❌ {badCount} (hodnocení)
         </p>
         <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
@@ -136,7 +136,7 @@ export function Flashcards({
           <button
             type="button"
             onClick={onExit}
-            className="rounded-2xl border-2 border-slate-300 bg-white px-6 py-4 text-lg font-bold text-slate-700"
+            className="rounded-2xl border-2 border-app-border bg-app-card px-6 py-4 text-lg font-bold text-app-muted"
           >
             Zpět
           </button>
@@ -152,13 +152,13 @@ export function Flashcards({
   return (
     <div className="mx-auto flex w-full max-w-lg flex-col gap-6 px-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-lg font-semibold text-slate-800">
+        <p className="text-lg font-semibold text-app-fg">
           {categoryLabel} · Kartičky
         </p>
         <button
           type="button"
           onClick={onExit}
-          className="rounded-xl border-2 border-slate-300 bg-white px-4 py-2 text-base font-semibold text-slate-700"
+          className="rounded-xl border-2 border-app-border bg-app-card px-4 py-2 text-base font-semibold text-app-muted"
           aria-label="Zpět"
         >
           ← Zpět
@@ -179,10 +179,10 @@ export function Flashcards({
           }}
         />
       </div>
-      <p className="text-center text-base font-bold text-slate-700">
+      <p className="text-center text-base font-bold text-app-muted">
         {progressLabel}
       </p>
-      <p className="text-center text-lg text-slate-600">
+      <p className="text-center text-lg text-app-muted">
         ✅ {okCount} · ❌ {badCount}
       </p>
 

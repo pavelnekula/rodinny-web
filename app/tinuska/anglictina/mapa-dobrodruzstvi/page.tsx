@@ -11,7 +11,7 @@ export default function MapaPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-[40vh] items-center justify-center bg-[#ffffff] text-[#6b7280]">
+        <div className="flex min-h-[40vh] items-center justify-center bg-app-bg text-app-muted">
           Načítání…
         </div>
       }

@@ -23,7 +23,7 @@ type HubPhase = "hub" | "play";
 
 function PlayShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-full bg-gradient-to-b from-amber-50 via-teal-50/80 to-rose-50 py-8">
+    <div className="min-h-full bg-app-bg py-6 sm:py-8">
       <div className="mx-auto w-full max-w-5xl px-4 sm:px-6">{children}</div>
     </div>
   );
@@ -166,32 +166,32 @@ export function AnglictinaHub() {
   }
 
   return (
-    <div className="min-h-full bg-gradient-to-b from-amber-50 via-teal-50/70 to-rose-50">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-4 py-8 sm:px-6 sm:py-12">
+    <div className="min-h-full bg-app-bg">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-4 py-6 sm:px-6 sm:py-10">
         <Link
           href="/tinuska"
-          className="inline-flex w-fit items-center gap-2 rounded-xl border-2 border-violet-200 bg-white/90 px-4 py-2 text-base font-semibold text-violet-800 shadow-sm transition hover:bg-violet-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
+          className="app-btn-pill inline-flex w-fit items-center gap-2 border border-app-border bg-app-card px-4 py-2 text-base font-semibold text-app-fg transition hover:border-app-border-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent focus-visible:ring-offset-2 focus-visible:ring-offset-app-bg"
           aria-label="Zpět na výuku Tinušky"
         >
           ← Zpět na Tinušku
         </Link>
 
         <header className="text-center sm:text-left">
-          <h1 className="text-3xl font-extrabold text-slate-900 sm:text-4xl md:text-5xl">
+          <h1 className="app-title-gradient text-3xl font-bold tracking-[-0.05em] sm:text-4xl md:text-5xl md:tracking-[-0.07em]">
             🇬🇧 Angličtina · slovíčka
           </h1>
-          <p className="mt-3 max-w-2xl text-lg text-slate-600 sm:text-xl">
-            <strong className="font-semibold text-slate-800">
+          <p className="mt-3 max-w-2xl text-lg text-app-muted sm:text-xl">
+            <strong className="font-semibold text-app-fg">
               1) Kategorie
             </strong>{" "}
-            → <strong className="font-semibold text-slate-800">2) Herní mód</strong>{" "}
-            → <strong className="font-semibold text-slate-800">3) Začít</strong>{" "}
+            → <strong className="font-semibold text-app-fg">2) Herní mód</strong>{" "}
+            → <strong className="font-semibold text-app-fg">3) Začít</strong>{" "}
             (u kvízu, kola a mapy klikni na kartu módu a otevře se stránka hry).
           </p>
           <p className="mt-4 flex flex-wrap gap-4">
             <Link
               href="/tinuska/anglictina/sprava"
-              className="text-base font-medium text-[#3b82f6] underline-offset-4 transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2"
+              className="text-base font-medium text-app-accent underline-offset-4 transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent focus-visible:ring-offset-2 focus-visible:ring-offset-app-bg"
               aria-label="Správa vlastních slovíček"
             >
               Správa slovíček (doplň vlastní)
@@ -201,7 +201,7 @@ export function AnglictinaHub() {
             <DailyChallengeBar />
           </div>
           <p
-            className="mt-4 inline-flex flex-wrap items-center justify-center gap-2 rounded-2xl border-2 border-teal-200 bg-white/90 px-5 py-3 text-lg font-bold text-teal-900 shadow-sm sm:justify-start"
+            className="app-card mt-4 inline-flex flex-wrap items-center justify-center gap-2 px-5 py-3 text-lg font-bold text-app-fg sm:justify-start"
             role="status"
             aria-live="polite"
           >
@@ -209,7 +209,7 @@ export function AnglictinaHub() {
               🌟
             </span>
             Umíš{" "}
-            <span className="tabular-nums text-2xl text-rose-600">
+            <span className="tabular-nums text-2xl text-app-accent">
               {masteredCount}
             </span>{" "}
             z {totalWords} slovíček
@@ -226,7 +226,7 @@ export function AnglictinaHub() {
             total={categoryTotal(categoryId)}
           />
         ) : (
-          <p className="text-base text-slate-500">
+          <p className="text-base text-app-muted">
             Klikni na kategorii níže – uvidíš postup učení v ní.
           </p>
         )}
@@ -252,7 +252,7 @@ export function AnglictinaHub() {
               !mode ||
               !isGameModeImplemented(mode)
             }
-            className="rounded-2xl border-4 border-teal-400 bg-gradient-to-r from-teal-300 to-cyan-300 px-8 py-4 text-xl font-extrabold text-teal-950 shadow-lg transition enabled:hover:scale-[1.02] enabled:hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 disabled:cursor-not-allowed disabled:opacity-50"
+            className="app-btn-pill app-btn-primary px-8 py-4 text-xl font-bold disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent focus-visible:ring-offset-2 focus-visible:ring-offset-app-bg"
             aria-label="Začít hrát s vybranou kategorií a módem"
           >
             ▶ Hrát — vybraná kategorie
@@ -261,7 +261,7 @@ export function AnglictinaHub() {
             type="button"
             onClick={startMixPlay}
             disabled={!mode || !isGameModeImplemented(mode)}
-            className="rounded-2xl border-4 border-violet-300 bg-gradient-to-r from-violet-200 to-fuchsia-200 px-8 py-4 text-lg font-extrabold text-violet-950 shadow-lg transition enabled:hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
+            className="app-btn-pill border border-app-border bg-app-card px-8 py-4 text-lg font-bold text-app-fg transition hover:border-app-border-hover disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent focus-visible:ring-offset-2 focus-visible:ring-offset-app-bg"
             aria-label="Hrát s mixem dvaceti slovíček ze všech kategorií"
           >
             🎲 MIX ({MIX_COUNT} slov)
@@ -269,13 +269,13 @@ export function AnglictinaHub() {
           <button
             type="button"
             onClick={startRandomMix}
-            className="rounded-2xl border-4 border-amber-300 bg-gradient-to-r from-amber-200 to-orange-200 px-8 py-4 text-lg font-extrabold text-amber-950 shadow-lg transition hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600"
+            className="app-btn-pill border border-app-accent/40 bg-app-card px-8 py-4 text-lg font-bold text-app-fg transition hover:border-app-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent focus-visible:ring-offset-2 focus-visible:ring-offset-app-bg"
             aria-label="Náhodný herní mód a mix slovíček"
           >
             🎲 Náhodný mód + MIX
           </button>
         </div>
-        <p className="text-center text-sm text-slate-500 sm:text-left">
+        <p className="text-center text-sm text-app-muted sm:text-left">
           „Hrát — vybraná kategorie“ platí pro kartičky, pexeso a doplň písmena —
           potřebuješ vybranou kategorii i jeden z prvních tří módů. „MIX“ bere
           náhodných {MIX_COUNT} slov. U kvízu, kola a mapy vyber kategorii nahoře

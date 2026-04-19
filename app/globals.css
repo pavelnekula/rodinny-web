@@ -1,31 +1,172 @@
 @import "tailwindcss";
 
+/* Design tokens — barvy výhradně zde; sekční akcent přepíná data-accent na obalu. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --app-bg: #000000;
+  --app-fg: #ffffff;
+  --app-fg-muted: rgba(255, 255, 255, 0.55);
+  --app-fg-subtle: rgba(255, 255, 255, 0.3);
+
+  --app-accent-blue: #0a84ff;
+  --app-accent-green: #30d158;
+  --app-accent-purple: #bf5af2;
+  --app-accent-orange: #ff9f0a;
+
+  --app-accent: var(--app-accent-blue);
+
+  --app-card-bg: rgba(255, 255, 255, 0.04);
+  --app-card-border: rgba(255, 255, 255, 0.06);
+  --app-card-border-hover: rgba(255, 255, 255, 0.14);
+
+  --app-input-bg: rgba(255, 255, 255, 0.06);
+  --app-input-border: rgba(255, 255, 255, 0.1);
+
+  --app-nav-bg: rgba(0, 0, 0, 0.72);
+  --app-nav-border: rgba(255, 255, 255, 0.06);
+
+  --app-divider: rgba(255, 255, 255, 0.08);
+}
+
+[data-accent="blue"] {
+  --app-accent: var(--app-accent-blue);
+}
+[data-accent="green"] {
+  --app-accent: var(--app-accent-green);
+}
+[data-accent="purple"] {
+  --app-accent: var(--app-accent-purple);
+}
+[data-accent="orange"] {
+  --app-accent: var(--app-accent-orange);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-app-bg: var(--app-bg);
+  --color-app-fg: var(--app-fg);
+  --color-app-muted: var(--app-fg-muted);
+  --color-app-subtle: var(--app-fg-subtle);
+  --color-app-accent: var(--app-accent);
+  --color-app-card: var(--app-card-bg);
+  --color-app-border: var(--app-card-border);
+  --color-app-border-hover: var(--app-card-border-hover);
+  --color-app-input: var(--app-input-bg);
+  --color-app-input-border: var(--app-input-border);
+  --color-app-nav-bg: var(--app-nav-bg);
+  --color-app-nav-border: var(--app-nav-border);
+  --color-app-divider: var(--app-divider);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--app-bg);
+  color: var(--app-fg);
 }
 
-/* Fyzika pro Teodora — pexeso flip */
+/* Hlavní nadpisy — gradient bílá → průhledná */
+.app-title-gradient {
+  background: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    rgba(255, 255, 255, 0.55) 50%,
+    rgba(255, 255, 255, 0.22) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Karty */
+.app-card {
+  border-radius: 18px;
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.app-card-interactive:hover {
+  transform: translateY(-2px);
+  border-color: var(--app-card-border-hover);
+}
+
+/* Tlačítka — pill */
+.app-btn-pill {
+  border-radius: 980px;
+  font-weight: 600;
+  transition:
+    opacity 0.2s ease,
+    transform 0.15s ease;
+}
+
+.app-btn-pill:active {
+  transform: scale(0.98);
+}
+
+.app-btn-primary {
+  background: var(--app-accent);
+  color: #ffffff;
+}
+
+.app-btn-primary:hover {
+  opacity: 0.92;
+}
+
+.app-btn-secondary {
+  background: var(--app-card-bg);
+  color: var(--app-fg);
+  border: 1px solid var(--app-card-border);
+}
+
+.app-btn-secondary:hover {
+  border-color: var(--app-card-border-hover);
+}
+
+/* Formulářové prvky */
+.app-field {
+  border-radius: 12px;
+  background: var(--app-input-bg);
+  color: var(--app-fg);
+  border: 1px solid var(--app-input-border);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.app-field:focus {
+  outline: none;
+  border-color: var(--app-accent);
+  box-shadow: 0 0 0 1px var(--app-accent);
+}
+
+.app-field::placeholder {
+  color: var(--app-fg-subtle);
+}
+
+/* Jemný vstup stránky */
+@keyframes app-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.app-enter {
+  animation: app-fade-up 0.5s ease-out both;
+}
+
+/* Fyzika — pexeso flip (beze změny logiky) */
 .fyzika-flip-scene {
   perspective: 900px;
 }

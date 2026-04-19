@@ -36,41 +36,40 @@ const sections = [
 
 export default function TeoAnglictinaPage() {
   return (
-    <div className="min-h-full bg-[#ffffff] text-[#1a1a1a]">
-      <div className="mx-auto max-w-3xl px-6 py-12 sm:px-8 sm:py-16">
+    <div className="mx-auto max-w-3xl py-2 sm:py-4">
         <Link
           href="/teo"
-          className="text-sm font-medium text-[#3b82f6] underline-offset-4 hover:underline focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2"
+          className="text-sm font-medium text-app-accent underline-offset-4 transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent focus-visible:ring-offset-2 focus-visible:ring-offset-app-bg"
         >
           ← Zpět na výuku Tea
         </Link>
 
-        <header className="mt-8 border-b border-[#e5e7eb] pb-10">
-          <p className="text-sm font-medium uppercase tracking-wide text-[#6b7280]">
+        <header className="mt-8 border-b border-app-divider pb-10">
+          <p className="text-xs font-semibold uppercase tracking-widest text-app-muted">
             English · Animal project
           </p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+          <h1 className="app-title-gradient mt-3 text-3xl font-bold tracking-[-0.04em] sm:text-4xl">
             The giraffe 🦒
           </h1>
-          <p className="mt-4 text-lg font-light leading-relaxed text-[#6b7280]">
+          <p className="mt-4 text-lg font-normal leading-relaxed text-app-muted">
             Základní otázky k druhu zvířete – rychlé odpovědi v angličtině (a česky
             pod tím).
           </p>
         </header>
 
-        <div className="mt-10 rounded-xl border border-[#e5e7eb] bg-[#ffffff] p-5 shadow-sm">
-          <p className="text-sm font-semibold text-[#1a1a1a]">Rychlý přehled</p>
-          <ul className="mt-3 list-inside list-disc space-y-1 text-sm leading-relaxed text-[#6b7280]">
+        <div className="app-card mt-10 p-5">
+          <p className="text-sm font-semibold text-app-fg">Rychlý přehled</p>
+          <ul className="mt-3 list-inside list-disc space-y-1 text-sm leading-relaxed text-app-muted">
             <li>
-              <span className="font-medium text-[#1a1a1a]">Habitat:</span>{" "}
+              <span className="font-medium text-app-fg">Habitat:</span>{" "}
               African savanna & grasslands
             </li>
             <li>
-              <span className="font-medium text-[#1a1a1a]">Food:</span> leaves
+              <span className="font-medium text-app-fg">Food:</span> leaves
               (herbivore)
             </li>
             <li>
-              <span className="font-medium text-[#1a1a1a]">Status:</span>{" "}
+              <span className="font-medium text-app-fg">Status:</span>{" "}
               Vulnerable (IUCN)
             </li>
           </ul>
@@ -79,26 +78,25 @@ export default function TeoAnglictinaPage() {
         <div className="mt-12 space-y-12">
           {sections.map((block) => (
             <section key={block.qEn}>
-              <h2 className="text-xl font-semibold tracking-tight text-[#1a1a1a]">
+              <h2 className="text-xl font-semibold tracking-tight text-app-fg">
                 {block.qEn}
               </h2>
-              <p className="mt-4 text-lg leading-relaxed text-[#1a1a1a]">
+              <p className="mt-4 text-lg leading-relaxed text-app-fg">
                 {block.aEn}
               </p>
-              <p className="mt-3 border-l-2 border-[#e5e7eb] pl-4 text-base leading-relaxed text-[#6b7280]">
+              <p className="mt-3 border-l-2 border-app-divider pl-4 text-base leading-relaxed text-app-muted">
                 {block.cs}
               </p>
             </section>
           ))}
         </div>
 
-        <footer className="mt-16 border-t border-[#e5e7eb] pt-8 text-sm text-[#6b7280]">
+        <footer className="mt-16 border-t border-app-divider pt-8 text-sm text-app-muted">
           <p>
             Tip: Nahlas si přečti český překlad a pak zkus stejnou odpověď říct
             anglicky podle textu nad ním.
           </p>
         </footer>
-      </div>
     </div>
   );
 }

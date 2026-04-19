@@ -6,7 +6,7 @@ export default function FyzikaTeodorPage() {
     <div>
       <Link
         href="/"
-        className="mb-8 inline-flex text-sm text-slate-500 hover:text-cyan-400"
+        className="mb-8 inline-flex text-sm font-medium text-app-muted transition hover:text-app-accent"
       >
         ← Zpět na úvod
       </Link>

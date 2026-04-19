@@ -17,14 +17,14 @@ export function ProgressBar({
 
   return (
     <div className={className}>
-      <div className="mb-1 flex justify-between text-base font-medium text-slate-700">
+      <div className="mb-1 flex justify-between text-base font-medium text-app-muted">
         <span>{label}</span>
         <span className="tabular-nums">
           {current} / {total}
         </span>
       </div>
       <div
-        className="h-4 w-full overflow-hidden rounded-full border border-teal-200 bg-teal-50"
+        className="h-4 w-full overflow-hidden rounded-full border border-app-border bg-app-card"
         role="progressbar"
         aria-valuenow={current}
         aria-valuemin={0}
@@ -32,7 +32,7 @@ export function ProgressBar({
         aria-label={label}
       >
         <div
-          className="h-full rounded-full bg-gradient-to-r from-teal-400 to-cyan-400 transition-[width] duration-500 ease-out"
+          className="h-full rounded-full bg-app-accent transition-[width] duration-500 ease-out"
           style={{ width: `${pct}%` }}
         />
       </div>

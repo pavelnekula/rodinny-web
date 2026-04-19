@@ -16,7 +16,7 @@ export function WordCard({ word, showStar, className = "" }: WordCardProps) {
   return (
     <motion.div
       layout
-      className={`relative flex flex-col items-center justify-center gap-2 rounded-3xl border-2 border-white/40 bg-white/90 p-6 text-center shadow-lg ${className}`}
+      className={`relative flex flex-col items-center justify-center gap-2 rounded-3xl border-2 border-white/40 bg-app-card p-6 text-center shadow-lg ${className}`}
     >
       {showStar ? (
         <span
@@ -34,7 +34,7 @@ export function WordCard({ word, showStar, className = "" }: WordCardProps) {
       >
         {word.emoji}
       </span>
-      <p className="text-2xl font-bold capitalize text-slate-800 sm:text-3xl">
+      <p className="text-2xl font-bold capitalize text-app-fg sm:text-3xl">
         {word.en}
       </p>
     </motion.div>

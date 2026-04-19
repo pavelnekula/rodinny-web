@@ -1,34 +1,39 @@
 ﻿---
-description: Keep all pages in one minimalist style
+description: Keep all pages in one Apple-inspired dark style
 alwaysApply: true
 ---
 
 # Jednotný styl stránek
 
-Všechny nové i upravované stránky drž ve stejném vizuálním stylu jako hlavní stránka.
+Všechny nové i upravované stránky drž v **tmavém Apple-inspired** stylu definovaném v `app/globals.css` (CSS proměnné `--app-*`, sekční akcent `data-accent`).
 
 ## Základní pravidla
 
-- Používej minimalistický vzhled: bílé pozadí, tmavý text, jeden modrý akcent.
-- Nepoužívej gradienty, tmavé hero sekce, výrazné dekorace ani externí UI knihovny.
-- Používej Tailwind utility třídy; zachovej konzistentní spacing, border a shadow.
-- Pro navigaci používej jednoduché textové odkazy (bez zbytečných badge/label prvků).
-- Zachovej dostupnost: `aria-label` na interaktivních prvcích, viditelný focus ring.
+- Pozadí vždy **černé** (`--app-bg` / `#000000`), žádné světlé full-page pozadí.
+- Barvy a akcenty **pouze** přes proměnné v `globals.css` a Tailwind tokeny `app-*` (např. `bg-app-bg`, `text-app-muted`, `text-app-accent`).
+- Karty: utility `app-card` + `app-card-interactive` (18px radius, jemný hover).
+- Tlačítka: `app-btn-pill` + `app-btn-primary` / `app-btn-secondary` podle kontextu.
+- Navigace: sdílený `SiteChrome` (fixní horní lišta, blur) — nepřidávej duplicitní vlastní „hlavní“ menu bez důvodu.
+- Typografie: `font-sans` (Inter z root layoutu), velké nadpisy používej `app-title-gradient` kde dává smysl.
+- Zachovej dostupnost: `aria-label`, viditelný focus ring (`ring-app-accent`).
 
-## Design tokeny
+## Sekční barvy (akcent)
 
-- Background: `#ffffff`
-- Primary text: `#1a1a1a`
-- Secondary text: `#6b7280`
-- Accent: `#3b82f6`
-- Border: `#e5e7eb`
+- Úvod / matematika: `blue` (`SiteChrome accent="blue"`).
+- Tinuška / angličtina: `purple`.
+- Teo / fyzika: `green`.
+- Sklep: `orange`.
 
-## Příklady
+## Příklad
 
 ```tsx
 // ✅ GOOD
-<div className="bg-[#ffffff] text-[#1a1a1a] border border-[#e5e7eb] shadow-sm" />
+<div className="app-card p-6 text-app-fg">
+  <button type="button" className="app-btn-pill app-btn-primary px-6 py-3">
+    Akce
+  </button>
+</div>
 
-// ❌ BAD
-<div className="bg-gradient-to-r from-purple-500 to-blue-500 text-white" />
+// ❌ BAD — natvrdo hex mimo tokeny
+<div className="bg-[#ffffff] text-[#1a1a1a]" />
 ```

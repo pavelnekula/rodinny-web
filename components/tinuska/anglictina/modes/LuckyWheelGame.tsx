@@ -252,7 +252,7 @@ export function LuckyWheelGame({ mergedWords }: { mergedWords: Word[] }) {
           </button>
           <Link
             href="/tinuska/anglictina"
-            className="rounded-2xl border-2 border-[#e5e7eb] bg-white px-6 py-3 font-bold text-[#1a1a1a]"
+            className="rounded-2xl border-2 border-[#e5e7eb] bg-app-card px-6 py-3 font-bold text-[#1a1a1a]"
           >
             Zpět
           </Link>
@@ -267,11 +267,11 @@ export function LuckyWheelGame({ mergedWords }: { mergedWords: Word[] }) {
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <Link
             href="/tinuska/anglictina"
-            className="rounded-xl border-2 border-[#e5e7eb] bg-white px-4 py-2 font-semibold"
+            className="rounded-xl border-2 border-[#e5e7eb] bg-app-card px-4 py-2 font-semibold"
           >
             ← Zpět
           </Link>
-          <p className="text-lg font-bold text-slate-800">
+          <p className="text-lg font-bold text-app-fg">
             💯 {score} · Otočení {Math.min(spin, SPINS)} / {SPINS}
           </p>
         </div>
@@ -290,7 +290,7 @@ export function LuckyWheelGame({ mergedWords }: { mergedWords: Word[] }) {
         ) : null}
 
         {phase === "q" && word ? (
-          <div className="mt-8 rounded-3xl border-2 border-[#e5e7eb] bg-white p-6 shadow-sm">
+          <div className="mt-8 rounded-3xl border-2 border-[#e5e7eb] bg-app-card p-6 shadow-sm">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-2xl font-extrabold text-[#1a1a1a]">

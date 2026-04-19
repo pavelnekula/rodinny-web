@@ -44,7 +44,7 @@ export function UnitConverter() {
             className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
               tab === t.id
                 ? "bg-cyan-600 text-white shadow-[0_0_16px_rgba(34,211,238,0.35)]"
-                : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                : "bg-app-card text-app-subtle hover:bg-slate-700"
             }`}
           >
             {t.label}
@@ -76,11 +76,11 @@ export function UnitConverter() {
 
 function Ladder({ labels }: { labels: string[] }) {
   return (
-    <div className="flex flex-wrap items-center justify-center gap-1 text-xs text-slate-400 sm:text-sm">
+    <div className="flex flex-wrap items-center justify-center gap-1 text-xs text-app-muted sm:text-sm">
       {labels.map((l, i) => (
         <span key={l} className="flex items-center gap-1">
           {i > 0 ? <span className="text-cyan-500">→</span> : null}
-          <span className="rounded-md border border-slate-600 bg-slate-800 px-2 py-1 text-slate-200">
+          <span className="rounded-md border border-slate-600 bg-app-card px-2 py-1 text-app-fg">
             {l}
           </span>
         </span>
@@ -125,7 +125,7 @@ function LengthPanel({ playCorrect, playWrong }: PanelProps) {
   return (
     <div className="space-y-6">
       <Ladder labels={labels} />
-      <p className="text-center text-xs text-slate-500">
+      <p className="text-center text-xs text-app-muted">
         ×10 mezi mm→cm→dm→m, ×1000 m→km
       </p>
       <ConverterRow
@@ -248,7 +248,7 @@ function VolumePanel({ playCorrect, playWrong }: PanelProps) {
   return (
     <div className="space-y-6">
       <Ladder labels={["ml", "cl", "dl", "l", "hl"]} />
-      <p className="text-center text-xs text-slate-500">
+      <p className="text-center text-xs text-app-muted">
         1 dm³ = 1 l, 1 m³ = 1000 l, 1 ml = 1 cm³
       </p>
       <ConverterRow
@@ -363,7 +363,7 @@ function SpeedPanel({ playCorrect, playWrong }: PanelProps) {
 
   return (
     <div className="space-y-6">
-      <p className="text-center text-sm text-cyan-400">
+      <p className="text-center text-sm text-app-accent">
         1 m/s = 3,6 km/h · km/h → m/s děl 3,6
       </p>
       <ConverterRow
@@ -422,7 +422,7 @@ function TempPanel({ playCorrect, playWrong }: PanelProps) {
 
   return (
     <div className="space-y-6">
-      <p className="text-center text-xs text-slate-500">
+      <p className="text-center text-xs text-app-muted">
         K = °C + 273 · °F = °C×9/5 + 32
       </p>
       <ConverterRow
@@ -487,19 +487,19 @@ function ConverterRow<T extends string>({
   }, [result]);
 
   return (
-    <div className="grid gap-4 rounded-2xl border border-slate-600 bg-slate-900/60 p-4 sm:grid-cols-2">
+    <div className="grid gap-4 rounded-2xl border border-slate-600 bg-app-card p-4 sm:grid-cols-2">
       <div>
-        <label className="text-xs text-slate-400">Hodnota</label>
+        <label className="text-xs text-app-muted">Hodnota</label>
         <input
           value={value}
           onChange={(e) => onValue(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-slate-100"
+          className="mt-1 w-full rounded-lg border border-slate-600 bg-app-bg px-3 py-2 text-slate-100"
         />
-        <label className="mt-3 block text-xs text-slate-400">Z jednotky</label>
+        <label className="mt-3 block text-xs text-app-muted">Z jednotky</label>
         <select
           value={from}
           onChange={(e) => onFrom(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-slate-100"
+          className="mt-1 w-full rounded-lg border border-slate-600 bg-app-bg px-3 py-2 text-slate-100"
         >
           {unitOptions.map((u) => (
             <option key={u} value={u}>
@@ -509,15 +509,15 @@ function ConverterRow<T extends string>({
         </select>
       </div>
       <div>
-        <label className="text-xs text-slate-400">Výsledek</label>
+        <label className="text-xs text-app-muted">Výsledek</label>
         <div className="mt-1 rounded-lg border border-cyan-500/40 bg-cyan-950/30 px-3 py-3 font-mono text-lg text-cyan-200">
           {pretty}
         </div>
-        <label className="mt-3 block text-xs text-slate-400">Do jednotky</label>
+        <label className="mt-3 block text-xs text-app-muted">Do jednotky</label>
         <select
           value={to}
           onChange={(e) => onTo(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-slate-100"
+          className="mt-1 w-full rounded-lg border border-slate-600 bg-app-bg px-3 py-2 text-slate-100"
         >
           {unitOptions.map((u) => (
             <option key={u} value={u}>
@@ -548,13 +548,13 @@ function DrillSection({
   return (
     <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-4">
       <p className="text-sm font-semibold text-emerald-300">Drill mód</p>
-      <p className="mt-2 text-slate-200">{question}</p>
+      <p className="mt-2 text-app-fg">{question}</p>
       <div className="mt-3 flex flex-wrap gap-2">
         <input
           value={input}
           onChange={(e) => onInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && onCheck()}
-          className="min-w-[8rem] flex-1 rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-slate-100"
+          className="min-w-[8rem] flex-1 rounded-lg border border-slate-600 bg-app-bg px-3 py-2 text-slate-100"
         />
         <button
           type="button"
@@ -566,12 +566,12 @@ function DrillSection({
         <button
           type="button"
           onClick={onNew}
-          className="rounded-lg border border-slate-500 px-4 py-2 text-slate-300"
+          className="rounded-lg border border-slate-500 px-4 py-2 text-app-subtle"
         >
           Nová úloha
         </button>
       </div>
-      <p className="mt-2 text-xs text-slate-500">Body v drillu: {points}</p>
+      <p className="mt-2 text-xs text-app-muted">Body v drillu: {points}</p>
     </div>
   );
 }

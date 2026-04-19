@@ -39,6 +39,12 @@ function linesFromCounts(counts: Counts): WineOrderLine[] {
   return lines;
 }
 
+const stepperBtn =
+  "app-btn-pill flex h-11 min-w-[2.75rem] items-center justify-center border border-app-input-border bg-app-input px-3 text-lg font-semibold text-app-fg transition hover:border-app-border-hover disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent";
+
+const stepperInput =
+  "app-field h-11 w-14 text-center text-base font-semibold tabular-nums focus-visible:outline-none";
+
 type StepperProps = {
   label: string;
   sublabel: string;
@@ -64,8 +70,8 @@ function BottleStepper({
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
       <div>
-        <p className="text-sm font-medium text-[#1a1a1a]">{label}</p>
-        <p className="text-xs font-light text-[#6b7280]">{sublabel}</p>
+        <p className="text-sm font-medium text-app-fg">{label}</p>
+        <p className="text-xs font-light text-app-muted">{sublabel}</p>
       </div>
       <div className="flex items-center gap-2">
         <button
@@ -73,7 +79,7 @@ function BottleStepper({
           onClick={dec}
           disabled={disabled || value <= 0}
           aria-label={`Snížit počet – ${label}`}
-          className="flex h-11 min-w-[2.75rem] items-center justify-center rounded-lg border border-[#e5e7eb] bg-[#ffffff] text-lg font-semibold text-[#1a1a1a] transition hover:bg-[#f9fafb] disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2"
+          className={stepperBtn}
         >
           −
         </button>
@@ -94,14 +100,14 @@ function BottleStepper({
             onChange(Math.max(0, Math.min(MAX_BOTTLES, n)));
           }}
           aria-label={`Počet kusů – ${label}`}
-          className="h-11 w-14 rounded-lg border border-[#e5e7eb] bg-[#ffffff] text-center text-base font-semibold tabular-nums text-[#1a1a1a] focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2"
+          className={stepperInput}
         />
         <button
           type="button"
           onClick={inc}
           disabled={disabled || value >= MAX_BOTTLES}
           aria-label={`Zvýšit počet – ${label}`}
-          className="flex h-11 min-w-[2.75rem] items-center justify-center rounded-lg border border-[#e5e7eb] bg-[#ffffff] text-lg font-semibold text-[#1a1a1a] transition hover:bg-[#f9fafb] disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2"
+          className={stepperBtn}
         >
           +
         </button>
@@ -180,6 +186,9 @@ export function WineOrderForm() {
     }
   }
 
+  const radioCard =
+    "flex cursor-pointer items-start gap-3 rounded-[18px] border border-app-border bg-app-card p-4 transition hover:border-app-border-hover has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-app-accent";
+
   return (
     <form
       onSubmit={onSubmit}
@@ -192,12 +201,12 @@ export function WineOrderForm() {
           return (
             <div
               key={wine.id}
-              className="rounded-xl border border-[#e5e7eb] bg-[#ffffff] p-6 shadow-sm"
+              className="app-card p-6 sm:p-8"
             >
-              <h3 className="text-lg font-semibold text-[#1a1a1a]">
+              <h3 className="text-lg font-semibold text-app-fg">
                 {wine.name}
               </h3>
-              <div className="mt-6 space-y-6 border-t border-[#e5e7eb] pt-6">
+              <div className="mt-6 space-y-6 border-t border-app-divider pt-6">
                 <BottleStepper
                   label="Skleněná lahev 0,75 l"
                   sublabel={`${formatCZK(priceForTyp("sklo"))} / ks`}
@@ -219,14 +228,14 @@ export function WineOrderForm() {
       </div>
 
       <fieldset className="space-y-4">
-        <legend className="text-base font-semibold text-[#1a1a1a]">
+        <legend className="text-base font-semibold text-app-fg">
           Doprava
         </legend>
         <div className="space-y-3">
           {DELIVERY_OPTIONS.map((opt) => (
             <label
               key={opt.id}
-              className="flex cursor-pointer items-start gap-3 rounded-lg border border-[#e5e7eb] bg-[#ffffff] p-4 shadow-sm transition hover:bg-[#fafafa] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[#3b82f6] has-[:focus-visible]:ring-offset-2"
+              className={radioCard}
             >
               <input
                 type="radio"
@@ -238,9 +247,9 @@ export function WineOrderForm() {
                   setStatus("idle");
                 }}
                 disabled={submitting}
-                className="mt-1 h-4 w-4 shrink-0 accent-[#1a1a1a]"
+                className="mt-1 h-4 w-4 shrink-0 accent-app-accent"
               />
-              <span className="text-sm font-light leading-relaxed text-[#1a1a1a]">
+              <span className="text-sm font-light leading-relaxed text-app-fg">
                 {opt.label}
               </span>
             </label>
@@ -252,9 +261,9 @@ export function WineOrderForm() {
         <div>
           <label
             htmlFor="wine-order-email"
-            className="block text-sm font-medium text-[#1a1a1a]"
+            className="block text-sm font-medium text-app-fg"
           >
-            E-mail <span className="text-[#6b7280]">(povinné)</span>
+            E-mail <span className="text-app-muted">(povinné)</span>
           </label>
           <input
             id="wine-order-email"
@@ -267,16 +276,16 @@ export function WineOrderForm() {
             }}
             disabled={submitting}
             required
-            className="mt-2 w-full rounded-lg border border-[#e5e7eb] bg-[#ffffff] px-4 py-3 text-base text-[#1a1a1a] shadow-sm focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2"
+            className="app-field mt-2 w-full px-4 py-3 text-base focus-visible:outline-none"
             placeholder="vas@email.cz"
           />
         </div>
         <div>
           <label
             htmlFor="wine-order-note"
-            className="block text-sm font-medium text-[#1a1a1a]"
+            className="block text-sm font-medium text-app-fg"
           >
-            Poznámka <span className="text-[#6b7280]">(volitelné)</span>
+            Poznámka <span className="text-app-muted">(volitelné)</span>
           </label>
           <textarea
             id="wine-order-note"
@@ -287,20 +296,20 @@ export function WineOrderForm() {
             }}
             disabled={submitting}
             rows={4}
-            className="mt-2 w-full resize-y rounded-lg border border-[#e5e7eb] bg-[#ffffff] px-4 py-3 text-base font-light text-[#1a1a1a] shadow-sm focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2"
+            className="app-field mt-2 w-full resize-y px-4 py-3 text-base font-light focus-visible:outline-none"
             placeholder="Doplňující informace k objednávce…"
           />
         </div>
       </div>
 
-      <div className="border-t border-[#e5e7eb] pt-8">
-        <p className="text-2xl font-semibold tracking-tight text-[#1a1a1a]">
+      <div className="border-t border-app-divider pt-8">
+        <p className="text-2xl font-semibold tracking-tight text-app-fg">
           Celkem: {formatCZK(total)}
         </p>
 
         {status === "success" ? (
           <p
-            className="mt-6 rounded-lg border border-[#e5e7eb] bg-[#f9fafb] px-4 py-3 text-base font-light text-[#1a1a1a]"
+            className="mt-6 rounded-[18px] border border-app-border bg-app-card px-4 py-3 text-base font-light text-app-fg"
             role="status"
           >
             Objednávka byla odeslána. Brzy se ozveme!
@@ -308,13 +317,13 @@ export function WineOrderForm() {
         ) : null}
         {status === "error" ? (
           <p
-            className="mt-6 rounded-lg border border-[#e5e7eb] bg-[#f9fafb] px-4 py-3 text-base font-light text-[#1a1a1a]"
+            className="mt-6 rounded-[18px] border border-app-border bg-app-card px-4 py-3 text-base font-light text-app-fg"
             role="alert"
           >
             Něco se nepovedlo. Zkuste to prosím znovu nebo napište přímo na{" "}
             <a
               href="mailto:pavelnekula@gmail.com"
-              className="font-medium text-[#3b82f6] underline-offset-2 hover:underline"
+              className="font-medium text-app-accent underline-offset-2 hover:underline"
             >
               pavelnekula@gmail.com
             </a>
@@ -322,7 +331,7 @@ export function WineOrderForm() {
         ) : null}
 
         {total === 0 ? (
-          <p className="mt-4 text-sm font-light text-[#6b7280]">
+          <p className="mt-4 text-sm font-light text-app-muted">
             Vyberte prosím alespoň jednu lahev.
           </p>
         ) : null}
@@ -330,7 +339,7 @@ export function WineOrderForm() {
         <button
           type="submit"
           disabled={submitDisabled}
-          className="mt-6 w-full rounded-lg bg-[#1a1a1a] px-6 py-4 text-base font-semibold text-[#ffffff] shadow-sm transition hover:bg-[#374151] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2 sm:w-auto sm:min-w-[12rem]"
+          className="app-btn-pill app-btn-primary mt-6 w-full px-8 py-4 text-base disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent focus-visible:ring-offset-2 focus-visible:ring-offset-app-bg sm:w-auto sm:min-w-[12rem]"
         >
           {submitting ? "Odesílám…" : "Odeslat"}
         </button>

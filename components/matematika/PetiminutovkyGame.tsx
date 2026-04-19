@@ -167,7 +167,7 @@ function ratingTitle(correct: number): {
   if (correct >= 40)
     return { title: "🏆 SUPER VÝSLEDEK!", color: "text-amber-500" };
   if (correct >= 25)
-    return { title: "🌟 Výborně!", color: "text-slate-400" };
+    return { title: "🌟 Výborně!", color: "text-app-muted" };
   if (correct >= 10)
     return { title: "👍 Dobrá práce!", color: "text-[#3b82f6]" };
   return { title: "💪 Příště to půjde!", color: "text-emerald-600" };
@@ -732,7 +732,7 @@ export function PetiminutovkyGame() {
                   className="absolute inset-0 z-10 flex items-center justify-center rounded-3xl bg-[#6b7280]/40 backdrop-blur-[1px]"
                   aria-live="polite"
                 >
-                  <p className="rounded-xl bg-white px-6 py-4 text-lg font-semibold shadow-lg md:px-10 md:py-6 md:text-2xl">
+                  <p className="rounded-xl bg-app-card px-6 py-4 text-lg font-semibold shadow-lg md:px-10 md:py-6 md:text-2xl">
                     Pauza — odpočiň si 😊
                   </p>
                 </div>

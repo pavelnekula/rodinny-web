@@ -1,9 +1,9 @@
 import { SiteChrome } from "@/components/site/SiteChrome";
 
-export default function MatematikaLayout({
+export default function TinuskaLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <SiteChrome accent="blue">{children}</SiteChrome>;
+  return <SiteChrome accent="purple">{children}</SiteChrome>;
 }

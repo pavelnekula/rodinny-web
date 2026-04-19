@@ -48,15 +48,15 @@ export function WordSetPicker({
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 py-6 sm:px-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-extrabold text-slate-900 sm:text-3xl">
+          <h2 className="text-2xl font-extrabold text-app-fg sm:text-3xl">
             Vyber sadu slovíček
           </h2>
-          <p className="mt-2 max-w-xl text-base text-slate-600">{modeHint}</p>
+          <p className="mt-2 max-w-xl text-base text-app-muted">{modeHint}</p>
         </div>
         <button
           type="button"
           onClick={onBack}
-          className="rounded-xl border-2 border-slate-300 bg-white px-4 py-2 text-base font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500"
+          className="rounded-xl border-2 border-app-border bg-app-card px-4 py-2 text-base font-semibold text-app-muted shadow-sm transition hover:bg-app-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500"
           aria-label="Zpět na výběr módu"
         >
           ← Zpět
@@ -86,7 +86,7 @@ export function WordSetPicker({
       </div>
 
       <div>
-        <p className="mb-3 text-center text-base font-bold text-slate-800">
+        <p className="mb-3 text-center text-base font-bold text-app-fg">
           Nebo vyber jednu kategorii
         </p>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3">
