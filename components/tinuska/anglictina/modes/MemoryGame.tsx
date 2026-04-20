@@ -83,7 +83,6 @@ export function MemoryGame({
   const [matched, setMatched] = useState<Set<string>>(() => new Set());
   const [moves, setMoves] = useState(0);
   const [score, setScore] = useState(0);
-  const [centi, setCenti] = useState(0);
   const [lock, setLock] = useState(false);
   const [done, setDone] = useState(false);
   const pairStartRef = useRef<number | null>(null);
@@ -98,7 +97,6 @@ export function MemoryGame({
     setMatched(new Set());
     setMoves(0);
     setScore(0);
-    setCenti(0);
     setLock(false);
     setDone(false);
     pairStartRef.current = null;
@@ -117,11 +115,6 @@ export function MemoryGame({
     }
   }, [flipped, deck, speakSlow]);
 
-  useEffect(() => {
-    if (done) return;
-    const t = window.setInterval(() => setCenti((c) => c + 1), 10);
-    return () => window.clearInterval(t);
-  }, [done]);
 
   useEffect(() => {
     if (matched.size < pairCount || pairCount === 0 || completionRef.current) {
@@ -134,8 +127,6 @@ export function MemoryGame({
       saveIfBetter("memory", wordSetKey, scoreRef.current);
     });
   }, [matched, pairCount, playFanfare, saveIfBetter, wordSetKey]);
-
-  const secondsDisplay = (centi / 100).toFixed(1);
 
   const onCardClick = useCallback(
     (card: MemCard) => {
@@ -220,8 +211,7 @@ export function MemoryGame({
             {categoryLabel} · Pexeso
           </p>
           <p className="text-base text-app-muted">
-            Tahy: <span className="font-bold tabular-nums">{moves}</span> · Čas:{" "}
-            <span className="font-bold tabular-nums">{secondsDisplay}</span> s ·
+            Tahy: <span className="font-bold tabular-nums">{moves}</span> ·
             Body: <span className="font-bold tabular-nums">{score}</span>
             {best > 0 ? (
               <span className="ml-2 text-teal-700">
@@ -268,8 +258,7 @@ export function MemoryGame({
             Hotovo! 🎉
           </p>
           <p className="relative mt-2 text-lg text-emerald-800">
-            Čas: <strong>{secondsDisplay}</strong> s · Tahů:{" "}
-            <strong>{moves}</strong> · Body: <strong>{score}</strong>
+            Tahů: <strong>{moves}</strong> · Body: <strong>{score}</strong>
           </p>
           <p className="relative mt-4 text-5xl" aria-label="Hvězdy">
             {"⭐".repeat(starRating(moves))}

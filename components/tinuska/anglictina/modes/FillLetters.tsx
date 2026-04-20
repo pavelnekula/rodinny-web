@@ -76,7 +76,6 @@ export function FillLetters({
   const [phase, setPhase] = useState<Phase>("play");
   const [shake, setShake] = useState(false);
   const [flashOk, setFlashOk] = useState(false);
-  const roundStartRef = useRef<number>(0);
   const [keyboardUsed, setKeyboardUsed] = useState<Set<string>>(
     () => new Set(),
   );
@@ -91,7 +90,6 @@ export function FillLetters({
     setFilled(
       target.split("").map((ch, i) => (m[i] ? "" : ch)),
     );
-    roundStartRef.current = performance.now();
     setHintsUsedCount(0);
   }, [word?.id, target]);
 
@@ -139,10 +137,7 @@ export function FillLetters({
           const next = [...prev];
           next[idx] = low;
           if (isComplete(target, mask, next)) {
-            const elapsed =
-              (performance.now() - roundStartRef.current) / 1000;
             let pts = 10;
-            if (elapsed <= 10) pts += 5;
             pts -= hintsUsedCount * 3;
             if (pts < 0) pts = 0;
             window.setTimeout(() => advanceRound(pts, word.id), 0);
@@ -200,9 +195,7 @@ export function FillLetters({
       const next = [...prev];
       next[pick] = ch;
       if (isComplete(target, mask, next)) {
-        const elapsed = (performance.now() - roundStartRef.current) / 1000;
         let pts = 10;
-        if (elapsed <= 10) pts += 5;
         pts -= nextHintsUsed * 3;
         if (pts < 0) pts = 0;
         window.setTimeout(() => advanceRound(pts, word.id), 0);

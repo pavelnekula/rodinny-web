@@ -6,7 +6,6 @@ import { useAnglictinaAchievements } from "../AchievementProvider";
 import { useGameHighScores } from "../hooks/useGameHighScores";
 import { useSpeech } from "../hooks/useSpeech";
 import { ConfettiBurst } from "../shared/ConfettiBurst";
-import { CircularTimer } from "../shared/CircularTimer";
 import { QuizAnswerGrid } from "../shared/QuizAnswerGrid";
 import type { CategoryId, QuizDifficulty, Word } from "../types";
 import { VOCABULARY_CATEGORIES } from "../VocabularyData";
@@ -21,7 +20,6 @@ import {
   soloQuizRoundScore,
   streakMultiplier,
   starRatingFromRatio,
-  timeLimitForDifficulty,
 } from "../utils/scoring";
 
 const SOLO_TOTAL = 10;
@@ -76,9 +74,7 @@ export function QuizDuelGame({
   const [pickedWrong, setPickedWrong] = useState<number | null>(null);
   const [lock, setLock] = useState(false);
 
-  const [remain, setRemain] = useState(0);
-  const maxTRef = useRef(10);
-  const roundStartRef = useRef(0);
+  const QUIZ_POINTS_MAX_TIME = 10;
   const streakRef = useRef(0);
   const scoreRef = useRef(0);
 
@@ -105,18 +101,6 @@ export function QuizDuelGame({
     scoreRef.current = soloScore;
   }, [soloScore]);
 
-  useEffect(() => {
-    if (phase !== "soloPlay" || lock || feedback) return;
-    const t = window.setInterval(() => {
-      setRemain((r) => {
-        const n = r - 0.1;
-        if (n <= 0) return 0;
-        return Math.round(n * 10) / 10;
-      });
-    }, 100);
-    return () => window.clearInterval(t);
-  }, [phase, lock, feedback]);
-
   const finishSoloRun = useCallback(
     (finalScore: number, correct: number, wrong: number) => {
       const ratio = correct / SOLO_TOTAL;
@@ -139,62 +123,6 @@ export function QuizDuelGame({
     [ach, getHighScore, saveIfBetter, soloHsKey],
   );
 
-  const roundExpiredRef = useRef(false);
-
-  useEffect(() => {
-    roundExpiredRef.current = false;
-  }, [idx]);
-
-  useEffect(() => {
-    if (phase !== "soloPlay" || lock || feedback) return;
-    if (remain > 0) return;
-    if (roundExpiredRef.current) return;
-    roundExpiredRef.current = true;
-    setLock(true);
-    playSound("wrong");
-    ach.trackAnswer(false);
-    setWrongN((n) => n + 1);
-    setStreak(0);
-    streakRef.current = 0;
-    setFeedback("bad");
-    setPickedWrong(null);
-    window.setTimeout(() => {
-      const nextIdx = idx + 1;
-      const c = correctN;
-      const w = wrongN + 1;
-      if (nextIdx >= questions.length) {
-        finishSoloRun(scoreRef.current, c, w);
-        return;
-      }
-      setFeedback(null);
-      setPickedWrong(null);
-      setLock(false);
-      stop();
-      setIdx(nextIdx);
-      const lim = timeLimitForDifficulty(soloDiff);
-      maxTRef.current = lim;
-      setRemain(lim);
-      roundStartRef.current = performance.now();
-      if (soloDiff === "easy" && questions[nextIdx]?.direction === "enToCs") {
-        window.setTimeout(() => speakSlow(questions[nextIdx]!.word.en), 200);
-      }
-    }, 1200);
-  }, [
-    remain,
-    phase,
-    lock,
-    feedback,
-    ach,
-    idx,
-    questions,
-    correctN,
-    wrongN,
-    finishSoloRun,
-    soloDiff,
-    speakSlow,
-    stop,
-  ]);
-
   const startSolo = useCallback(() => {
     if (poolSolo.length < 4) {
       window.alert("Potřebujeme alespoň 4 slovíčka v sadě.");
@@ -214,10 +142,6 @@ export function QuizDuelGame({
     setFeedback(null);
     setPickedWrong(null);
     setLock(false);
-    const lim = timeLimitForDifficulty(soloDiff);
-    maxTRef.current = lim;
-    setRemain(lim);
-    roundStartRef.current = performance.now();
     setPhase("soloPlay");
     if (soloDiff === "easy" && qs[0]?.direction === "enToCs") {
       window.setTimeout(() => speakSlow(qs[0]!.word.en), 200);
@@ -230,9 +154,6 @@ export function QuizDuelGame({
     const ok = i === current.correctIndex;
     const correctAfter = correctN + (ok ? 1 : 0);
     const wrongAfter = wrongN + (ok ? 0 : 1);
-    const elapsed = (performance.now() - roundStartRef.current) / 1000;
-    const timeLeft = Math.max(0, maxTRef.current - elapsed);
-
     if (ok) {
       playSound("correct");
       ach.trackAnswer(true);
@@ -241,8 +162,8 @@ export function QuizDuelGame({
       streakRef.current = nextStreak;
       setStreak(nextStreak);
       const pts = soloQuizRoundScore({
-        timeRemainingSec: timeLeft,
-        maxTimeSec: maxTRef.current,
+        timeRemainingSec: QUIZ_POINTS_MAX_TIME,
+        maxTimeSec: QUIZ_POINTS_MAX_TIME,
         streakAfterCorrect: nextStreak,
       });
       const newScore = scoreRef.current + pts;
@@ -273,10 +194,6 @@ export function QuizDuelGame({
       setLock(false);
       stop();
       setIdx(nextIdx);
-      const lim = timeLimitForDifficulty(soloDiff);
-      maxTRef.current = lim;
-      setRemain(lim);
-      roundStartRef.current = performance.now();
       if (soloDiff === "easy" && questions[nextIdx]?.direction === "enToCs") {
         window.setTimeout(() => speakSlow(questions[nextIdx]!.word.en), 200);
       }
@@ -338,8 +255,6 @@ export function QuizDuelGame({
         {phase === "soloPlay" && current ? (
           <SoloPlay
             current={current}
-            remain={remain}
-            maxT={maxTRef.current}
             feedback={feedback}
             pickedWrong={pickedWrong}
             lock={lock}
@@ -384,7 +299,7 @@ function SoloSetup({
   return (
     <div className="rounded-3xl border-2 border-[#e5e7eb] bg-app-card p-6 shadow-sm">
       <h2 className="text-2xl font-bold text-[#1a1a1a]">Sólo — nastavení</h2>
-      <p className="mt-2 text-[#6b7280]">10 otázek, čas podle obtížnosti.</p>
+      <p className="mt-2 text-[#6b7280]">10 otázek bez časového limitu.</p>
       <div className="mt-4">
         <p className="font-semibold text-[#1a1a1a]">Kategorie</p>
         <div className="mt-2 flex flex-wrap gap-2">
@@ -420,9 +335,9 @@ function SoloSetup({
         <div className="mt-2 grid gap-2 sm:grid-cols-3">
           {(
             [
-              ["easy", "Lehká", "15 s, čte se anglicky"],
-              ["medium", "Střední", "10 s, bez čtení"],
-              ["hard", "Těžká", "7 s, česky → výběr EN"],
+              ["easy", "Lehká", "bez limitu, čte se anglicky"],
+              ["medium", "Střední", "bez limitu, bez čtení"],
+              ["hard", "Těžká", "bez limitu, česky → výběr EN"],
             ] as const
           ).map(([id, t, d]) => (
             <button
@@ -463,8 +378,6 @@ function SoloSetup({
 
 function SoloPlay({
   current,
-  remain,
-  maxT,
   feedback,
   pickedWrong,
   lock,
@@ -473,8 +386,6 @@ function SoloPlay({
   onPick,
 }: {
   current: Q;
-  remain: number;
-  maxT: number;
   feedback: "ok" | "bad" | null;
   pickedWrong: number | null;
   lock: boolean;
@@ -484,7 +395,6 @@ function SoloPlay({
 }) {
   const prompt =
     current.direction === "enToCs" ? current.word.en : current.word.cs;
-  const progress = maxT > 0 ? remain / maxT : 0;
   return (
     <div className="rounded-3xl border-2 border-[#e5e7eb] bg-app-card p-6 shadow-sm">
       <div className="flex items-start justify-between gap-4">
@@ -500,12 +410,6 @@ function SoloPlay({
               ? "Vyber český překlad"
               : "Vyber anglické slovo"}
           </p>
-        </div>
-        <div className="flex shrink-0 flex-col items-center gap-1">
-          <CircularTimer progress={progress} size={64} />
-          <span className="text-xs font-bold text-[#6b7280]">
-            {remain.toFixed(1)} s
-          </span>
         </div>
       </div>
       <div className="mt-8">

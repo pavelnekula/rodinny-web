@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAnglictinaAchievements } from "../AchievementProvider";
 import { useGameHighScores } from "../hooks/useGameHighScores";
-import { CircularTimer } from "../shared/CircularTimer";
 import { QuizAnswerGrid } from "../shared/QuizAnswerGrid";
 import { SpinWheel, type WheelSlice } from "../shared/SpinWheel";
 import type { CategoryId, Word } from "../types";
@@ -18,7 +17,6 @@ import {
 import { useSpeech } from "../hooks/useSpeech";
 
 const SPINS = 12;
-const Q_TIME = 12;
 
 const WHEEL_COLORS: Record<string, string> = {
   colors: "#ef4444",
@@ -79,7 +77,6 @@ export function LuckyWheelGame({ mergedWords }: { mergedWords: Word[] }) {
   const [word, setWord] = useState<Word | null>(null);
   const [labels, setLabels] = useState<string[]>([]);
   const [correctIndex, setCorrectIndex] = useState(0);
-  const [remain, setRemain] = useState(Q_TIME);
   const [lock, setLock] = useState(false);
   const [feedback, setFeedback] = useState<"ok" | "bad" | null>(null);
   const [wrongI, setWrongI] = useState<number | null>(null);
@@ -106,7 +103,6 @@ export function LuckyWheelGame({ mergedWords }: { mergedWords: Word[] }) {
       setWord(w);
       setLabels(L);
       setCorrectIndex(ci);
-      setRemain(Q_TIME);
       setLock(false);
       setFeedback(null);
       setWrongI(null);
@@ -115,33 +111,6 @@ export function LuckyWheelGame({ mergedWords }: { mergedWords: Word[] }) {
     [mergedWords],
   );
 
-  useEffect(() => {
-    if (phase !== "q" || lock) return;
-    const id = window.setInterval(() => {
-      setRemain((r) => (r <= 0 ? 0 : Math.max(0, Math.round((r - 0.1) * 10) / 10)));
-    }, 100);
-    return () => window.clearInterval(id);
-  }, [phase, lock]);
-
-  useEffect(() => {
-    if (phase !== "q" || lock || !word) return;
-    if (remain > 0) return;
-    setLock(true);
-    playSound("wrong");
-    ach.trackAnswer(false);
-    setFeedback("bad");
-    setWrongI(null);
-    setMult(1);
-    window.setTimeout(() => {
-      setPhase("idle");
-      setWord(null);
-      setSpin((s) => {
-        const ns = s + 1;
-        if (ns >= SPINS) setPhase("end");
-        return ns;
-      });
-    }, 900);
-  }, [remain, phase, lock, word, ach]);
 
   const onSpin = () => {
     if (spinning || spin >= SPINS || phase === "q") return;
@@ -196,7 +165,7 @@ export function LuckyWheelGame({ mergedWords }: { mergedWords: Word[] }) {
     if (!word || lock) return;
     setLock(true);
     const ok = i === correctIndex;
-    const base = 100 + Math.round(remain * 5);
+    const base = 100;
     const pts = ok ? base * mult : 0;
     if (ok) {
       playSound("correct");
@@ -300,17 +269,14 @@ export function LuckyWheelGame({ mergedWords }: { mergedWords: Word[] }) {
                   Vyber český překlad
                 </p>
               </div>
-              <div className="flex flex-col items-center">
-                <CircularTimer progress={remain / Q_TIME} size={56} />
-                <button
-                  type="button"
-                  className="mt-2 text-2xl"
-                  aria-label="Přehrát slovo"
-                  onClick={() => speakSlow(word.en)}
-                >
-                  🔊
-                </button>
-              </div>
+              <button
+                type="button"
+                className="text-2xl"
+                aria-label="Přehrát slovo"
+                onClick={() => speakSlow(word.en)}
+              >
+                🔊
+              </button>
             </div>
             <div className="mt-6">
               <QuizAnswerGrid
